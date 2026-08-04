@@ -1,0 +1,21 @@
+name: lw_domain
+description: >-
+  LabelWise India domain core. Entities, value objects, the parser pipeline,
+  the confidence lattice, the rule engine and analysis.
+
+  THIS PACKAGE DECLARES ZERO DEPENDENCIES, BY DESIGN.
+
+  No Flutter. No packages. Not even JSON. The rule pack enters as already-parsed
+  domain types; deserialisation happens in infrastructure. A dependency added here
+  is an architectural violation, not a convenience (ADR-0007, ADR-0008, NFR-MNT-01, E1).
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+# dependencies: INTENTIONALLY ABSENT. See above.
+
+dev_dependencies:
+  lints: ^4.0.0
+  test: ^1.25.0

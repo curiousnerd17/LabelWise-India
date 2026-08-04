@@ -1,0 +1,20 @@
+name: lw_ports
+description: >-
+  Contracts the outside world must satisfy: text recognition, image acquisition,
+  rule pack access, scan persistence, clock. Depends on lw_domain only.
+
+  No port returns null to signal failure, throws for an expected condition,
+  or exposes a third-party type (ARCHITECTURE.md section 5).
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  lw_domain:
+    path: ../lw_domain
+
+dev_dependencies:
+  lints: ^4.0.0
+  test: ^1.25.0

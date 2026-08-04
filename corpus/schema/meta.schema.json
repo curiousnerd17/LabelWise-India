@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://labelwise.in/schema/corpus/meta.schema.json",
+  "title": "Golden corpus entry metadata",
+  "type": "object",
+  "required": ["entryId","category","set","product","capture","difficultyTags"],
+  "additionalProperties": false,
+  "properties": {
+    "entryId": { "type": "string", "pattern": "^[a-z]+-[0-9]{3}$" },
+    "category": { "enum": ["biscuits","chips","namkeen","noodles","beverages"] },
+    "set": {
+      "enum": ["development","holdout","verification"],
+      "description": "Holdout is assigned at creation and never moved. Looking at a holdout parse outside a gate contaminates it."
+    },
+    "product": {
+      "type": "object",
+      "required": ["name","manufacturer","packSize"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "manufacturer": { "type": "string" },
+        "variant": { "type": "string" },
+        "packSize": { "type": "string" },
+        "batchCode": { "type": "string", "description": "Labels change between print runs; this dates the ground truth." },
+        "purchaseLocation": { "type": "string" },
+        "purchaseDate": { "type": "string", "format": "date" }
+      }
+    },
+    "capture": {
+      "type": "object",
+      "required": ["device","capturedOn"],
+      "additionalProperties": false,
+      "properties": {
+        "device": { "const": "Moto G34 5G (4GB)", "description": "ADR-0018. Capture on any other device is not valid corpus data." },
+        "capturedOn": { "type": "string", "format": "date" },
+        "lighting": { "type": "string" },
+        "robustnessSubset": { "type": "boolean", "default": false }
+      }
+    },
+    "difficultyTags": {
+      "type": "array",
+      "items": { "enum": ["metallised","curved","low_light","poor_print","two_column","multi_component","small_text","glossy","creased"] },
+      "description": "At least half of each category's entries must carry one or more."
+    },
+    "notes": { "type": "string" },
+    "corrections": {
+      "type": "array",
+      "description": "Append-only. Never overwrite a value (ANNOTATION_GUIDE.md section 6.2).",
+      "items": {
+        "type": "object",
+        "required": ["date","field","oldValue","newValue","reason"],
+        "additionalProperties": false,
+        "properties": {
+          "date": { "type": "string", "format": "date" },
+          "field": { "type": "string" },
+          "oldValue": { "type": "string" },
+          "newValue": { "type": "string" },
+          "reason": { "type": "string", "minLength": 10, "description": "Must cite re-examination of the PHYSICAL PACKET." }
+        }
+      }
+    },
+    "reannotation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "performedOn": { "type": "string", "format": "date" },
+        "agreementRate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "disagreements": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

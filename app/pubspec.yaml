@@ -1,0 +1,33 @@
+name: labelwise
+description: >-
+  LabelWise India — offline-first food label reader. Presentation layer only.
+  Business logic lives in lw_domain; this package renders results it is given.
+
+  Presentation never touches infrastructure directly; it talks to application
+  use cases (ARCHITECTURE.md section 2.2).
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  lw_domain:
+    path: ../packages/lw_domain
+  lw_application:
+    path: ../packages/lw_application
+  lw_infrastructure:
+    path: ../packages/lw_infrastructure
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - ../rulepack/

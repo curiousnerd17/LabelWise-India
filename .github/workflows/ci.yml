@@ -1,0 +1,93 @@
+# LabelWise India — CI validation gates
+# Blocking checks CI-01…15 (TEST_STRATEGY.md section 10.1).
+#
+# These run from commit 1. Enforcement built before the code it constrains costs
+# a couple of hours and is worth more than every architectural intention in the
+# documents (ARCHITECTURE.md section 2.3).
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  boundaries:
+    name: Architectural boundaries (CI-01…03, CI-10, CI-12)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enforce layer boundaries and determinism
+        run: ./tool/check_layers.sh
+
+  rulepack:
+    name: Rule pack validation (CI-07…09)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install check-jsonschema
+      - name: Validate rule pack schema and references
+        run: ./tool/validate_rulepack.sh
+
+  licences:
+    name: Dependency licences (CI-13)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./tool/check_licences.sh
+
+  domain:
+    name: Domain tests and coverage (CI-04…06)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with: { sdk: stable }
+
+      # CI-04: the domain must test WITHOUT a Flutter binding. Using `dart test`
+      # rather than `flutter test` is the enforcement, not a preference.
+      - name: Domain unit and property tests
+        working-directory: packages/lw_domain
+        run: |
+          dart pub get
+          dart analyze --fatal-infos
+          dart test --coverage=coverage
+
+      - name: Coverage gate (CI-05, >= 90%)
+        working-directory: packages/lw_domain
+        run: |
+          dart pub global activate coverage
+          dart pub global run coverage:format_coverage \
+            --lcov --in=coverage --out=coverage/lcov.info --report-on=lib
+          PCT=$(awk -F: '/^LF:/{f+=$2} /^LH:/{h+=$2} END{if(f==0){print 0}else{printf "%.1f", h*100/f}}' coverage/lcov.info)
+          echo "Domain coverage: ${PCT}%"
+          awk -v p="$PCT" 'BEGIN{exit !(p+0 >= 90)}' || { echo "CI-05 FAILED: below 90%"; exit 1; }
+
+  requirements:
+    name: P0 requirement coverage (CI-15)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./tool/check_requirement_coverage.sh
+
+  corpus:
+    name: Golden corpus accuracy (CI-11)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with: { sdk: stable }
+
+      # Exact-match comparison. Tolerance NEVER enters accuracy measurement —
+      # it lives in the rule pack and governs invariants only (ADR-0023).
+      #
+      # Field Accuracy >= 85%  AND  Critical Error Rate <= 3%.
+      # Where the two conflict, the ERROR RATE governs whether we ship.
+      - name: Development-set accuracy
+        working-directory: packages/lw_domain
+        run: |
+          dart pub get
+          dart test --tags corpus

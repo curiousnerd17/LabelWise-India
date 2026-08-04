@@ -1,0 +1,26 @@
+name: lw_infrastructure
+description: >-
+  Adapters implementing the ports: on-device OCR, camera and gallery, asset-bundled
+  rule pack loader, local scan store.
+
+  Adapters stay thin: mapping and platform calls only. An adapter containing a branch
+  on business meaning is misplaced domain logic (AR7).
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  lw_domain:
+    path: ../lw_domain
+  lw_ports:
+    path: ../lw_ports
+  lw_rulepack:
+    path: ../lw_rulepack
+  # Every dependency added below requires an entry in docs/DEPENDENCY_REGISTER.md
+  # and must be Apache-2.0 compatible (CON-11, ADR-0017).
+
+dev_dependencies:
+  lints: ^4.0.0
+  test: ^1.25.0

@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://labelwise.in/schema/corpus/truth.schema.json",
+  "title": "Golden corpus ground truth",
+  "description": "Hand-transcribed from the PHYSICAL PACKET. Never from the image, never from OCR output. Append-only; never edited to make a test pass (ADR-0023, ANNOTATION_GUIDE.md).",
+  "type": "object",
+  "required": [
+    "entryId",
+    "guideVersion",
+    "annotatedBy",
+    "annotatedOn",
+    "nutrients",
+    "serving",
+    "ingredients"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "entryId": {
+      "type": "string",
+      "pattern": "^[a-z]+-[0-9]{3}$"
+    },
+    "guideVersion": {
+      "type": "string"
+    },
+    "annotatedBy": {
+      "type": "string"
+    },
+    "annotatedOn": {
+      "type": "string",
+      "format": "date"
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [
+        "combined"
+      ]
+    },
+    "nutrients": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "nutrient",
+          "values"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "nutrient": {
+            "$ref": "https://labelwise.in/schema/rulepack/common.schema.json#/$defs/nutrientId"
+          },
+          "component": {
+            "type": "string"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "basis",
+                "state"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "basis": {
+                  "$ref": "https://labelwise.in/schema/rulepack/common.schema.json#/$defs/basis"
+                },
+                "state": {
+                  "enum": [
+                    "DECLARED",
+                    "NOT_DECLARED",
+                    "ILLEGIBLE_ON_PACKET",
+                    "DISPUTED"
+                  ]
+                },
+                "printedText": {
+                  "type": "string",
+                  "description": "Exactly as printed. Not normalised (Rule 2)."
+                },
+                "value": {
+                  "type": "number"
+                },
+                "unitAsPrinted": {
+                  "type": "string"
+                },
+                "qualifier": {
+                  "enum": [
+                    "EXACT",
+                    "LESS_THAN",
+                    "GREATER_THAN",
+                    "APPROXIMATELY"
+                  ],
+                  "default": "EXACT",
+                  "description": "Part of the value model (ADR-0027, Q19 approved). Annotate exactly what the packet declares: '< 0.5 g' is LESS_THAN 0.5, never 0 and never a bare 0.5. Canonical form: omit this field when EXACT (ADR-0027 decision 5)."
+                },
+                "declaredAs": {
+                  "enum": [
+                    "NUMERIC",
+                    "ZERO"
+                  ]
+                },
+                "sourceColumn": {
+                  "type": "string",
+                  "description": "Physical column, for two-column panels"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "serving": {
+      "type": "object",
+      "required": [
+        "servingSize",
+        "servingsPerPack",
+        "netQuantity"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "servingSize": {
+          "$ref": "#/$defs/servingField"
+        },
+        "servingsPerPack": {
+          "$ref": "#/$defs/servingField"
+        },
+        "netQuantity": {
+          "$ref": "#/$defs/servingField"
+        }
+      }
+    },
+    "ingredients": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ingredient"
+      }
+    }
+  },
+  "$defs": {
+    "servingField": {
+      "type": "object",
+      "required": [
+        "state"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "enum": [
+            "DECLARED",
+            "NOT_DECLARED",
+            "ILLEGIBLE_ON_PACKET",
+            "DISPUTED"
+          ]
+        },
+        "printedText": {
+          "type": "string"
+        },
+        "value": {
+          "type": "number"
+        },
+        "unitAsPrinted": {
+          "type": "string"
+        },
+        "qualifier": {
+          "enum": [
+            "EXACT",
+            "LESS_THAN",
+            "GREATER_THAN",
+            "APPROXIMATELY"
+          ],
+          "default": "EXACT",
+          "description": "Part of the value model (ADR-0027, Q19 approved). Annotate exactly what the packet declares: '< 0.5 g' is LESS_THAN 0.5, never 0 and never a bare 0.5. Canonical form: omit this field when EXACT (ADR-0027 decision 5)."
+        }
+      }
+    },
+    "ingredient": {
+      "type": "object",
+      "required": [
+        "position",
+        "rawText"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "position": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Declaration order is legally meaningful (descending by weight)."
+        },
+        "rawText": {
+          "type": "string",
+          "minLength": 1
+        },
+        "normalisedName": {
+          "type": "string"
+        },
+        "insNumber": {
+          "type": "integer"
+        },
+        "classTitleAsPrinted": {
+          "type": "string"
+        },
+        "subIngredients": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ingredient"
+          }
+        }
+      }
+    }
+  }
+}

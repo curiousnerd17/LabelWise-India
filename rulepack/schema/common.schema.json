@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://labelwise.in/schema/rulepack/common.schema.json",
+  "title": "Shared rule pack definitions",
+  "$defs": {
+    "version": {
+      "type": "object",
+      "description": "Semantic version as a value object, never an opaque string (ADR-0022).",
+      "required": [
+        "major",
+        "minor",
+        "patch"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "major": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minor": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "patch": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "nutrientId": {
+      "enum": [
+        "ENERGY",
+        "PROTEIN",
+        "CARBOHYDRATE",
+        "TOTAL_SUGARS",
+        "ADDED_SUGARS",
+        "DIETARY_FIBRE",
+        "TOTAL_FAT",
+        "SATURATED_FAT",
+        "TRANS_FAT",
+        "MONOUNSATURATED_FAT",
+        "POLYUNSATURATED_FAT",
+        "CHOLESTEROL",
+        "SODIUM"
+      ],
+      "description": "Closed typed set. Adding a member requires a code change (ADR-0014)."
+    },
+    "unit": {
+      "enum": [
+        "GRAM",
+        "MILLIGRAM",
+        "MICROGRAM",
+        "MILLILITRE",
+        "KILOCALORIE",
+        "KILOJOULE",
+        "PERCENT",
+        "COUNT"
+      ]
+    },
+    "basis": {
+      "enum": [
+        "PER_100G",
+        "PER_100ML",
+        "PER_SERVE",
+        "PER_PACK"
+      ]
+    },
+    "parseStrength": {
+      "enum": [
+        "EXACT",
+        "NORMALISED",
+        "HEURISTIC"
+      ]
+    },
+    "confidence": {
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        "ABSENT"
+      ]
+    },
+    "quantity": {
+      "type": "object",
+      "description": "Scaled integer plus unit plus qualifier. Scale is a property of the unit, never stored here (ADR-0021). The qualifier is part of the value, not metadata beside it (ADR-0027). Canonical serialisation omits the qualifier when EXACT; this is normative and CI-enforced, because byte-different output for identical data breaks the rule pack integrity hash, FR-PAR-02 determinism, and golden-corpus comparison.",
+      "required": [
+        "scaledValue",
+        "unit"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "scaledValue": {
+          "type": "integer"
+        },
+        "unit": {
+          "$ref": "#/$defs/unit"
+        },
+        "qualifier": {
+          "$ref": "#/$defs/qualifier"
+        }
+      }
+    },
+    "sourceId": {
+      "type": "string",
+      "pattern": "^src\\.[a-z0-9_.-]+$"
+    },
+    "ruleId": {
+      "type": "string",
+      "pattern": "^rule\\.[a-z0-9_.-]+$"
+    },
+    "messageId": {
+      "type": "string",
+      "pattern": "^msg\\.[a-z0-9_.-]+$"
+    },
+    "categoryId": {
+      "type": "string",
+      "pattern": "^cat\\.[a-z0-9_-]+$"
+    },
+    "categorySelector": {
+      "type": "object",
+      "description": "Declarative category scoping. Category logic never appears as code branching (FR-KB-11, FR-CAT-04).",
+      "additionalProperties": false,
+      "properties": {
+        "appliesToAll": {
+          "type": "boolean",
+          "default": true
+        },
+        "includeCategories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/categoryId"
+          }
+        },
+        "excludeCategories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/categoryId"
+          }
+        }
+      }
+    },
+    "qualifier": {
+      "enum": [
+        "EXACT",
+        "LESS_THAN",
+        "GREATER_THAN",
+        "APPROXIMATELY"
+      ],
+      "default": "EXACT",
+      "description": "A quantity denotes an interval, not a point (ADR-0027). EXACT=[v,v]; LESS_THAN=[0,v); GREATER_THAN=(v,inf); APPROXIMATELY=[v-delta,v+delta] with delta from approximationDeltas. Equality INCLUDES the qualifier: LESS_THAN 0.5g is not equal to EXACT 0.5g. CANONICAL SERIALISED FORM (normative, ADR-0027 decision 5): reading an absent qualifier MUST yield EXACT; writing a qualifier of EXACT MUST omit this field entirely. Emitting \"qualifier\": \"EXACT\" is invalid output, not a stylistic variant. The JSON Schema 'default' keyword is annotation only and enforces nothing, so canonical form is additionally enforced by CI."
+    },
+    "invariantOutcome": {
+      "enum": [
+        "PASSED",
+        "FAILED",
+        "INDETERMINATE",
+        "INAPPLICABLE"
+      ],
+      "description": "INDETERMINATE means the declared intervals do not settle the comparison. It contributes NO confidence signal and must never be treated as FAILED (ADR-0027)."
+    }
+  }
+}

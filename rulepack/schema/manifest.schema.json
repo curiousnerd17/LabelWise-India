@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://labelwise.in/schema/rulepack/manifest.schema.json",
+  "title": "Rule pack manifest",
+  "description": "Identity, version and integrity of a rule pack. See ADR-0012, ADR-0022, FR-KB-02, FR-KB-08.",
+  "type": "object",
+  "required": ["schemaVersion", "packVersion", "minAppVersion", "integrityHash", "contentLicence", "generatedAt"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "$ref": "https://labelwise.in/schema/rulepack/common.schema.json#/$defs/version" },
+    "packVersion":   { "$ref": "https://labelwise.in/schema/rulepack/common.schema.json#/$defs/version" },
+    "minAppVersion": { "$ref": "https://labelwise.in/schema/rulepack/common.schema.json#/$defs/version" },
+    "integrityHash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "contentLicence": { "const": "CC-BY-4.0", "description": "ADR-0017. Content licence is separate from the Apache-2.0 code licence." },
+    "generatedAt": { "type": "string", "format": "date" },
+    "notes": { "type": "string" }
+  }
+}

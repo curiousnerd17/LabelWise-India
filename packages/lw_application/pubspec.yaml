@@ -1,0 +1,23 @@
+name: lw_application
+description: >-
+  Use cases orchestrating the domain and ports: PerformScan, CorrectField,
+  LoadRulePack. Pure Dart; no Flutter.
+
+  NOTE: under schedule pressure this package merges into lw_domain BEFORE any
+  relaxation of the Flutter boundary, the OCR boundary, or domain purity
+  (ADR-0019, ADR-0026).
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  lw_domain:
+    path: ../lw_domain
+  lw_ports:
+    path: ../lw_ports
+
+dev_dependencies:
+  lints: ^4.0.0
+  test: ^1.25.0

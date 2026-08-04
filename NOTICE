@@ -1,0 +1,35 @@
+LabelWise India
+Copyright 2026 The LabelWise India Contributors
+
+This product includes software developed by the LabelWise India project,
+licensed under the Apache License, Version 2.0.
+
+------------------------------------------------------------------------------
+SEPARATE LICENCE FOR KNOWLEDGE BASE CONTENT
+------------------------------------------------------------------------------
+
+The contents of the `rulepack/` directory — nutrition thresholds, additive
+records, source citations, message text and related curated content — are NOT
+covered by the Apache License 2.0.
+
+They are licensed under Creative Commons Attribution 4.0 International
+(CC BY 4.0). See `rulepack/LICENSE`.
+
+A software licence fits a dataset badly. The knowledge base is intended to be
+reusable and citable by other projects with attribution, independently of this
+application (ADR-0017).
+
+The directory boundary is the licence boundary. Curated content belongs in
+`rulepack/`; a rule smuggled into Dart is a licensing inconsistency as well as
+an architectural violation.
+
+------------------------------------------------------------------------------
+DISCLAIMER
+------------------------------------------------------------------------------
+
+LabelWise India provides educational and informational guidance based on
+information declared on product labels and publicly available nutrition
+guidance. It does not provide medical advice, diagnose health conditions, or
+determine allergen safety. Always consult a qualified healthcare professional
+for medical or dietary decisions. If OCR confidence is low or information is
+missing, verify the product label directly before making decisions.
