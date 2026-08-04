@@ -1,6 +1,5 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://labelwise.in/schema/corpus/truth.schema.json",
   "title": "Golden corpus ground truth",
   "description": "Hand-transcribed from the PHYSICAL PACKET. Never from the image, never from OCR output. Append-only; never edited to make a test pass (ADR-0023, ANNOTATION_GUIDE.md).",
   "type": "object",
@@ -49,7 +48,7 @@
         "additionalProperties": false,
         "properties": {
           "nutrient": {
-            "$ref": "https://labelwise.in/schema/rulepack/common.schema.json#/$defs/nutrientId"
+            "$ref": "../../rulepack/schema/common.schema.json#/$defs/nutrientId"
           },
           "component": {
             "type": "string"
@@ -65,7 +64,7 @@
               "additionalProperties": false,
               "properties": {
                 "basis": {
-                  "$ref": "https://labelwise.in/schema/rulepack/common.schema.json#/$defs/basis"
+                  "$ref": "../../rulepack/schema/common.schema.json#/$defs/basis"
                 },
                 "state": {
                   "enum": [

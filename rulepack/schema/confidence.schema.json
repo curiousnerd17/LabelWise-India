@@ -1,6 +1,5 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://labelwise.in/schema/rulepack/confidence.schema.json",
   "title": "Confidence assignment and invariant tolerances",
   "description": "S1/S2/S3 assignment plus tolerance bands, tunable from corpus calibration without a code change (ADR-0010). Tolerances govern invariants ONLY and must never enter parser accuracy measurement (ADR-0023).",
   "type": "object",
@@ -38,7 +37,7 @@
             "additionalProperties": false,
             "properties": {
               "parseStrength": {
-                "$ref": "https://labelwise.in/schema/rulepack/common.schema.json#/$defs/parseStrength"
+                "$ref": "common.schema.json#/$defs/parseStrength"
               },
               "anyInvariantFailed": {
                 "type": "boolean"
@@ -58,7 +57,7 @@
             }
           },
           "result": {
-            "$ref": "https://labelwise.in/schema/rulepack/common.schema.json#/$defs/confidence"
+            "$ref": "common.schema.json#/$defs/confidence"
           }
         }
       }
@@ -92,7 +91,7 @@
             "minimum": 0
           },
           "absoluteFloor": {
-            "$ref": "https://labelwise.in/schema/rulepack/common.schema.json#/$defs/quantity"
+            "$ref": "common.schema.json#/$defs/quantity"
           },
           "calibrationBasis": {
             "type": "string",
@@ -122,10 +121,10 @@
         "additionalProperties": false,
         "properties": {
           "unit": {
-            "$ref": "https://labelwise.in/schema/rulepack/common.schema.json#/$defs/unit"
+            "$ref": "common.schema.json#/$defs/unit"
           },
           "delta": {
-            "$ref": "https://labelwise.in/schema/rulepack/common.schema.json#/$defs/quantity"
+            "$ref": "common.schema.json#/$defs/quantity"
           },
           "basis": {
             "type": "string",

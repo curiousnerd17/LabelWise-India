@@ -1,22 +1,37 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://labelwise.in/schema/rulepack/messages.schema.json",
   "title": "Localised message catalogue",
   "description": "The domain holds message IDs and never display text (M5, FR-LOC-01). Hindi ships only after human review (FR-LOC-04).",
   "type": "object",
-  "required": ["locale","reviewed","messages"],
+  "required": [
+    "locale",
+    "reviewed",
+    "messages"
+  ],
   "additionalProperties": false,
   "properties": {
-    "locale": { "enum": ["en","hi"] },
+    "locale": {
+      "enum": [
+        "en",
+        "hi"
+      ]
+    },
     "reviewed": {
       "type": "boolean",
       "description": "A non-English catalogue with reviewed=false must not ship (FR-LOC-04, R11)."
     },
-    "reviewedBy": { "type": "string" },
+    "reviewedBy": {
+      "type": "string"
+    },
     "messages": {
       "type": "object",
-      "propertyNames": { "pattern": "^msg\\.[a-z0-9_.-]+$" },
-      "additionalProperties": { "type": "string", "minLength": 1 }
+      "propertyNames": {
+        "pattern": "^msg\\.[a-z0-9_.-]+$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
     }
   }
 }
