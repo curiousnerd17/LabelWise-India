@@ -1,0 +1,146 @@
+{
+  "signalPriority": [
+    "S3_INVARIANTS",
+    "S2_PARSE_STRENGTH",
+    "S1_OCR"
+  ],
+  "assignment": [
+    {
+      "when": {
+        "anyInvariantFailed": true
+      },
+      "result": "LOW"
+    },
+    {
+      "when": {
+        "parseStrength": "EXACT"
+      },
+      "result": "HIGH"
+    },
+    {
+      "when": {
+        "parseStrength": "NORMALISED"
+      },
+      "result": "MEDIUM"
+    },
+    {
+      "when": {
+        "parseStrength": "HEURISTIC"
+      },
+      "result": "LOW"
+    }
+  ],
+  "tolerances": [
+    {
+      "invariantId": "INV-01",
+      "mode": "EXACT",
+      "calibrationBasis": "Non-negativity admits no tolerance: a negative declared value is never a rounding artefact."
+    },
+    {
+      "invariantId": "INV-02",
+      "mode": "ABSOLUTE",
+      "absoluteFloor": {
+        "scaledValue": 10,
+        "unit": "GRAM"
+      },
+      "calibrationBasis": "Absorbs independent rounding of the two declared values. Provisional value from DATA_MODEL.md 4.4. NOT yet corpus-calibrated. Q14 requires calibration against ground-truth deviations on the development set before the MVP gate; calibrating against parser output would widen each band to accept the very error it exists to catch."
+    },
+    {
+      "invariantId": "INV-03",
+      "mode": "ABSOLUTE",
+      "absoluteFloor": {
+        "scaledValue": 10,
+        "unit": "GRAM"
+      },
+      "calibrationBasis": "Absorbs independent rounding of the two declared values. Provisional value from DATA_MODEL.md 4.4. NOT yet corpus-calibrated. Q14 requires calibration against ground-truth deviations on the development set before the MVP gate; calibrating against parser output would widen each band to accept the very error it exists to catch."
+    },
+    {
+      "invariantId": "INV-04",
+      "mode": "ABSOLUTE",
+      "absoluteFloor": {
+        "scaledValue": 10,
+        "unit": "GRAM"
+      },
+      "calibrationBasis": "Absorbs independent rounding of the two declared values. Provisional value from DATA_MODEL.md 4.4. NOT yet corpus-calibrated. Q14 requires calibration against ground-truth deviations on the development set before the MVP gate; calibrating against parser output would widen each band to accept the very error it exists to catch."
+    },
+    {
+      "invariantId": "INV-05",
+      "mode": "ABSOLUTE",
+      "absoluteFloor": {
+        "scaledValue": 50,
+        "unit": "GRAM"
+      },
+      "calibrationBasis": "Absorbs independent rounding of the two declared values. Provisional value from DATA_MODEL.md 4.4. NOT yet corpus-calibrated. Q14 requires calibration against ground-truth deviations on the development set before the MVP gate; calibrating against parser output would widen each band to accept the very error it exists to catch."
+    },
+    {
+      "invariantId": "INV-06",
+      "mode": "ABSOLUTE",
+      "absoluteFloor": {
+        "scaledValue": 200,
+        "unit": "GRAM"
+      },
+      "calibrationBasis": "Absorbs rounding across three independently rounded macronutrients. Provisional value from DATA_MODEL.md 4.4. NOT yet corpus-calibrated. Q14 requires calibration against ground-truth deviations on the development set before the MVP gate; calibrating against parser output would widen each band to accept the very error it exists to catch."
+    },
+    {
+      "invariantId": "INV-07",
+      "mode": "RELATIVE_WITH_FLOOR",
+      "relativeFraction": 0.15,
+      "absoluteFloor": {
+        "scaledValue": 200,
+        "unit": "KILOCALORIE"
+      },
+      "calibrationBasis": "Widest band in the set. The Atwater estimate is disturbed by dietary fibre, polyols, and by whether a label's declared carbohydrate includes fibre, which varies in Indian practice. Provisional value from DATA_MODEL.md 4.4. NOT yet corpus-calibrated. Q14 requires calibration against ground-truth deviations on the development set before the MVP gate; calibrating against parser output would widen each band to accept the very error it exists to catch."
+    },
+    {
+      "invariantId": "INV-08",
+      "mode": "RELATIVE_WITH_FLOOR",
+      "relativeFraction": 0.05,
+      "absoluteFloor": {
+        "scaledValue": 10,
+        "unit": "GRAM"
+      },
+      "calibrationBasis": "Absorbs independent rounding of the two declared values. Provisional value from DATA_MODEL.md 4.4. NOT yet corpus-calibrated. Q14 requires calibration against ground-truth deviations on the development set before the MVP gate; calibrating against parser output would widen each band to accept the very error it exists to catch."
+    },
+    {
+      "invariantId": "INV-09",
+      "mode": "EXACT",
+      "calibrationBasis": "A serving cannot exceed the pack; no rounding can produce that."
+    },
+    {
+      "invariantId": "INV-10",
+      "mode": "RELATIVE_WITH_FLOOR",
+      "relativeFraction": 0.1,
+      "absoluteFloor": {
+        "scaledValue": 50,
+        "unit": "COUNT"
+      },
+      "calibrationBasis": "Servings per pack is frequently declared as an approximation. Provisional value from DATA_MODEL.md 4.4. NOT yet corpus-calibrated. Q14 requires calibration against ground-truth deviations on the development set before the MVP gate; calibrating against parser output would widen each band to accept the very error it exists to catch."
+    }
+  ],
+  "approximationDeltas": [
+    {
+      "unit": "COUNT",
+      "delta": {
+        "scaledValue": 50,
+        "unit": "COUNT"
+      },
+      "basis": "Half a serving. 'About 4 servings' is read as 3.5 to 4.5. Provisional value from DATA_MODEL.md 4.4. NOT yet corpus-calibrated. Q14 requires calibration against ground-truth deviations on the development set before the MVP gate; calibrating against parser output would widen each band to accept the very error it exists to catch."
+    },
+    {
+      "unit": "GRAM",
+      "delta": {
+        "scaledValue": 100,
+        "unit": "GRAM"
+      },
+      "basis": "One gram either side, for the rare approximate mass declaration. Provisional value from DATA_MODEL.md 4.4. NOT yet corpus-calibrated. Q14 requires calibration against ground-truth deviations on the development set before the MVP gate; calibrating against parser output would widen each band to accept the very error it exists to catch."
+    },
+    {
+      "unit": "MILLILITRE",
+      "delta": {
+        "scaledValue": 100,
+        "unit": "MILLILITRE"
+      },
+      "basis": "Ten millilitres either side, for approximate volume declarations. Provisional value from DATA_MODEL.md 4.4. NOT yet corpus-calibrated. Q14 requires calibration against ground-truth deviations on the development set before the MVP gate; calibrating against parser output would widen each band to accept the very error it exists to catch."
+    }
+  ]
+}

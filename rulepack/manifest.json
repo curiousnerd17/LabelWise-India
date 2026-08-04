@@ -1,0 +1,21 @@
+{
+  "schemaVersion": {
+    "major": 1,
+    "minor": 0,
+    "patch": 0
+  },
+  "packVersion": {
+    "major": 0,
+    "minor": 1,
+    "patch": 0
+  },
+  "minAppVersion": {
+    "major": 0,
+    "minor": 1,
+    "patch": 0
+  },
+  "integrityHash": "sha256:33177c6c7a71c5650c3a28d05f95d3c83154507d947612e78af312b6e5d84d46",
+  "contentLicence": "CC-BY-4.0",
+  "generatedAt": "2026-08-04",
+  "notes": "v0.1 Factual pack (ADR-0025). Contains the FSSAI RDA denominators, the nutrient synonym table, INS additive records and the confidence assignment table. rules/thresholds.json is deliberately empty: Layer 2 advisory thresholds are v0.2 scope and are not fabricated here. EVALUATION ORDER: rules/confidence.json 'assignment' is an ORDERED list and the first matching rule wins. The anyInvariantFailed rule is first so that FR-CNF-05 holds absolutely; reordering it would silently break that guarantee. PERMISSION EVIDENCE: every additive's indianPermission is traced to Appendix A of the FSS (Food Products Standards and Food Additives) Regulations 2011, which was fetched and read on 2026-08-04. Appendix A lists additives BY NAME per food product and contains NO INS numbers, so each evidence entry records the name as printed. Only Tables 1 and 2 were examined; status UNKNOWN means not found in that scope and NEVER means prohibited. Permission never extends beyond the foodProducts cited. Tolerances are provisional pending corpus calibration (Q14). Integrity hash is sha256 over each non-manifest pack file, in sorted relative-path order, hashing the path then the bytes."
+}
