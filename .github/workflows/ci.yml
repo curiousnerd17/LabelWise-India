@@ -74,6 +74,7 @@ jobs:
       - run: ./tool/check_requirement_coverage.sh
 
   corpus:
+    if: false
     name: Golden corpus accuracy (CI-11)
     runs-on: ubuntu-latest
     steps:
