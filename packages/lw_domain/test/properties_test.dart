@@ -238,4 +238,193 @@ void main() {
       });
     });
   });
+
+  milestone3Properties();
+}
+
+/// Property tests added by Milestone 3 — PT-05, PT-13, PT-14, PT-20.
+///
+/// Declared separately from `main` above so the Milestone 1 properties remain
+/// untouched. `dart test` runs every top-level `main`; this file has one, so
+/// these groups are appended to it by the loader below.
+void milestone3Properties() {
+  final Version pack = Version(0, 1, 0);
+
+  Provenance extractedProv(ParseStrength s) => Provenance.extracted(
+        producedByStage: PipelineStage.fieldResolution,
+        parseRuleId: RuleId('rule.synonym.test'),
+        parseStrength: s,
+        sourceRegion: RegionRef(left: 0, top: 0, right: 100, bottom: 100),
+        rulePackVersion: pack,
+      );
+
+  group('PT-13 no operation crashes on any FieldState variant (MI-08)', () {
+    test('PT-13 every variant answers every accessor without throwing', () {
+      forAll('FieldState totality', (Gen gen) {
+        final List<FieldState> all = <FieldState>[
+          ExtractedField(
+            quantity: gen.quantity(),
+            basis: gen.basis(),
+            provenance: extractedProv(gen.parseStrength()),
+            confidence: gen.confidence(),
+          ),
+          DerivedField(
+            quantity: gen.quantity(),
+            basis: gen.basis(),
+            provenance: Provenance.derived(
+              producedByStage: PipelineStage.unitNormalisation,
+              parseRuleId: RuleId('rule.derive.test'),
+              rulePackVersion: pack,
+            ),
+            confidence: gen.confidence(),
+          ),
+          UserSuppliedField(
+            quantity: gen.quantity(),
+            basis: gen.basis(),
+            provenance: Provenance.userSupplied(rulePackVersion: pack),
+          ),
+          UnresolvedField(
+            reason: gen.unresolvedReason(),
+            provenance: extractedProv(gen.parseStrength()),
+          ),
+          const NotDeclaredField(),
+        ];
+        for (final FieldState s in all) {
+          expect(() => s.quantityOrNull, returnsNormally);
+          expect(() => s.basisOrNull, returnsNormally);
+          expect(() => s.confidenceOrNull, returnsNormally);
+          expect(() => s.propagatedConfidence, returnsNormally);
+          expect(() => s.toString(), returnsNormally);
+          expect(() => s.hashCode, returnsNormally);
+          expect(s == s, isTrue);
+        }
+      });
+    });
+
+    test('PT-13 unresolved and not-declared are never equal (FR-ERR-03)', () {
+      forAll('unresolved != notDeclared', (Gen gen) {
+        final FieldState u = UnresolvedField(
+          reason: gen.unresolvedReason(),
+          provenance: extractedProv(gen.parseStrength()),
+        );
+        expect(u == const NotDeclaredField(), isFalse);
+        expect(const NotDeclaredField() == u, isFalse);
+      });
+    });
+  });
+
+  group('PT-14 a user-supplied field survives re-analysis (FR-COR-04)', () {
+    test('PT-14 identity and confidence are unchanged by a round trip', () {
+      // Re-analysis reconstructs a field from its own parts. A user-supplied
+      // field must come back bit-identical and must still carry no confidence.
+      forAll('user-supplied round trip', (Gen gen) {
+        final UserSuppliedField original = UserSuppliedField(
+          quantity: gen.quantity(),
+          basis: gen.basis(),
+          provenance: Provenance.userSupplied(rulePackVersion: pack),
+        );
+        final UserSuppliedField reanalysed = UserSuppliedField(
+          quantity: original.quantity,
+          basis: original.basis,
+          provenance: original.provenance,
+        );
+        expect(reanalysed, original);
+        expect(reanalysed.confidenceOrNull, isNull);
+        expect(reanalysed.provenance.origin, FieldOrigin.userSupplied);
+        expect(reanalysed.provenance.parseStrength, isNull);
+        expect(reanalysed.propagatedConfidence, Confidence.high);
+      });
+    });
+  });
+
+  group('PT-20 a qualifier never changes confidence (MI-15)', () {
+    test('PT-20 changing only the qualifier leaves confidence untouched', () {
+      // ADR-0027: a label printing "< 0.5 g" is being precise about its
+      // imprecision. Reading that correctly is a HIGH-confidence read.
+      // Confidence measures how sure we are we read the label right, not how
+      // precise the label chose to be.
+      forAll('qualifier does not touch confidence', (Gen gen) {
+        final int value = gen.scaledValue();
+        final Unit unit = gen.unit();
+        final Basis basis = gen.basis();
+        final Confidence c = gen.confidence();
+        final Provenance p = extractedProv(gen.parseStrength());
+
+        final List<Confidence> observed = <Confidence>[
+          for (final Qualifier q in Qualifier.values)
+            ExtractedField(
+              quantity: Quantity.qualified(value, unit, q),
+              basis: basis,
+              provenance: p,
+              confidence: c,
+            ).confidence,
+        ];
+        expect(observed, everyElement(c));
+      });
+    });
+
+    test('PT-20 provenance records no qualifier at all', () {
+      // The structural guarantee behind MI-15: there is no path from Qualifier
+      // into Provenance, so a qualifier cannot reach confidence assignment.
+      final Provenance p = extractedProv(ParseStrength.exact);
+      expect(p.toString().toLowerCase(), isNot(contains('qualifier')));
+      expect(p.toString().toLowerCase(), isNot(contains('less_than')));
+    });
+  });
+
+  group('PT-05 propagation never increases confidence (partial)', () {
+    // The full property needs derivation chains, which arrive with Layer 1.
+    // What is testable now: a derived field's confidence never exceeds the meet
+    // of the confidences it was derived from.
+    test('PT-05 a derived field never exceeds the meet of its inputs', () {
+      forAll('derived <= meet(inputs)', (Gen gen) {
+        final List<FieldState> inputs = <FieldState>[
+          for (int i = 0; i < gen.intInRange(1, 4); i++)
+            ExtractedField(
+              quantity: gen.quantity(),
+              basis: gen.basis(),
+              provenance: extractedProv(gen.parseStrength()),
+              confidence: gen.confidence(),
+            ),
+        ];
+        final Confidence meet = Confidence.meetAll(
+          inputs.map((FieldState f) => f.propagatedConfidence),
+        );
+        final DerivedField derived = DerivedField(
+          quantity: gen.quantity(),
+          basis: gen.basis(),
+          provenance: Provenance.derived(
+            producedByStage: PipelineStage.unitNormalisation,
+            parseRuleId: RuleId('rule.derive.test'),
+            rulePackVersion: pack,
+          ),
+          confidence: meet,
+        );
+        for (final FieldState input in inputs) {
+          expect(
+            derived.propagatedConfidence.index,
+            lessThanOrEqualTo(input.propagatedConfidence.index),
+          );
+        }
+      });
+    });
+
+    test('PT-05 a user-supplied input never drags the meet below its peers',
+        () {
+      // User-supplied propagates as HIGH, so it is never the limiting factor.
+      forAll('user-supplied is not limiting', (Gen gen) {
+        final Confidence other = gen.confidence();
+        final UserSuppliedField user = UserSuppliedField(
+          quantity: gen.quantity(),
+          basis: gen.basis(),
+          provenance: Provenance.userSupplied(rulePackVersion: pack),
+        );
+        final Confidence meet = Confidence.meetAll(<Confidence>[
+          user.propagatedConfidence,
+          other,
+        ]);
+        expect(meet, other);
+      });
+    });
+  });
 }

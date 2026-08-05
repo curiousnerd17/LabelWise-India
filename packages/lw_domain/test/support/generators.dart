@@ -74,6 +74,25 @@ class Gen {
     );
   }
 
+  /// Any basis.
+  Basis basis() => Basis.values[_random.nextInt(Basis.values.length)];
+
+  /// Any parse strength — confidence signal S2.
+  ParseStrength parseStrength() =>
+      ParseStrength.values[_random.nextInt(ParseStrength.values.length)];
+
+  /// Any field origin.
+  FieldOrigin fieldOrigin() =>
+      FieldOrigin.values[_random.nextInt(FieldOrigin.values.length)];
+
+  /// Any reason a field could not be resolved.
+  UnresolvedReason unresolvedReason() =>
+      UnresolvedReason.values[_random.nextInt(UnresolvedReason.values.length)];
+
+  /// Any pipeline stage, S1 to S8.
+  PipelineStage pipelineStage() =>
+      PipelineStage.values[_random.nextInt(PipelineStage.values.length)];
+
   /// A version with small components, so collisions are frequent enough to
   /// exercise equality as well as ordering.
   Version version() =>

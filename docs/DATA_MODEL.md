@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Document** | `docs/DATA_MODEL.md` |
-| **Version** | 1.3 |
+| **Version** | 1.4 |
 | **Status** | **Approved** |
 | **Phase** | Phase 1: Architecture & Planning |
 | **Author** | Chief Software Architect |
@@ -12,6 +12,8 @@
 | **Decision log** | [`docs/adr/`](adr/README.md) |
 | **Successor** | `TEST_STRATEGY.md` |
 | **Resolves** | Q3 (invariant tolerances), Q4 (aggregate confidence), Q13 (region classification), **Q19 (qualified quantities)** |
+
+**Changes in v1.4.** §3.1 — `parseStrength` becomes optional, matching `parseRuleId`. A verified inconsistency found during Milestone 3: a `USER_SUPPLIED` value has no parse rule *and* no parse strength, but only the former was marked optional. Minimum change; no other field altered, no new type, no fourth `ParseStrength` value.
 
 **Changes in v1.3.** Canonical serialised form of the qualifier fixed normatively in the schema (§2.2a, ADR-0027 decision 5), MI-17 added.
 
@@ -231,7 +233,7 @@ The foundation of both confidence and explainability (ADR-0009).
 | `origin` | `FieldOrigin` | See §3.2 |
 | `producedByStage` | `PipelineStage` | S1–S8 (`ARCHITECTURE.md` §6.1) |
 | `parseRuleId` | `RuleId?` | *Optional justified:* absent only for `USER_SUPPLIED` values, which no rule produced |
-| `parseStrength` | `ParseStrength` | See §3.3 |
+| `parseStrength` | `ParseStrength?` | See §3.3. *Optional justified:* absent only for `USER_SUPPLIED` values. The same reasoning already accepted for `parseRuleId` applies — a value no rule produced has no strength at which a rule matched. Fabricating one would feed signal S2 (ADR-0010) from a match that never occurred. |
 | `substitutions` | `[Substitution]` | Possibly empty; never absent |
 | `sourceRegion` | `RegionRef?` | *Optional justified:* absent for derived and user-supplied values, which have no position on the label |
 | `rulePackVersion` | `Version` | FR-KB-02 |
