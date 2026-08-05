@@ -53,7 +53,10 @@ fi
 
 # --- CI-12: no INTERNET permission -------------------------------------------
 # Offline operation is OS-enforced, not merely claimed (ADR-0016).
-if grep -rq "android.permission.INTERNET" app/android 2>/dev/null; then
+
+if [ ! -d "app/android" ]; then
+  fail "CI-12 Android project not found. Cannot verify INTERNET permission."
+elif grep -rq "android.permission.INTERNET" app/android 2>/dev/null; then
   fail "CI-12 INTERNET permission present. The MVP ships without it (NFR-OFF-02)."
 else
   pass "CI-12 no INTERNET permission"
