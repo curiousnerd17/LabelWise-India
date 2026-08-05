@@ -1,0 +1,35 @@
+{
+  "categories": [
+    {
+      "categoryId": "cat.biscuits",
+      "nameMessageId": "msg.category.biscuits",
+      "defaultBasis": "PER_100G",
+      "status": "PRIORITY"
+    },
+    {
+      "categoryId": "cat.chips",
+      "nameMessageId": "msg.category.chips",
+      "defaultBasis": "PER_100G",
+      "status": "PRIORITY"
+    },
+    {
+      "categoryId": "cat.namkeen",
+      "nameMessageId": "msg.category.namkeen",
+      "defaultBasis": "PER_100G",
+      "status": "PRIORITY"
+    },
+    {
+      "categoryId": "cat.instant-noodles",
+      "nameMessageId": "msg.category.instant-noodles",
+      "defaultBasis": "PER_100G",
+      "status": "PRIORITY"
+    },
+    {
+      "categoryId": "cat.beverages",
+      "nameMessageId": "msg.category.beverages",
+      "defaultBasis": "PER_100ML",
+      "status": "VERIFICATION_ONLY",
+      "inapplicableInvariants": ["INV-06"]
+    }
+  ]
+}

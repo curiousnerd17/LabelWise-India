@@ -1,0 +1,259 @@
+{
+  "entries": [
+    {
+      "nutrient": "ENERGY",
+      "patterns": [
+        {
+          "text": "Energy",
+          "strength": "EXACT"
+        },
+        {
+          "text": "Energy Value",
+          "strength": "NORMALISED"
+        },
+        {
+          "text": "Energy (kcal)",
+          "strength": "NORMALISED"
+        },
+        {
+          "text": "Calories",
+          "strength": "HEURISTIC"
+        }
+      ],
+      "expectedUnits": [
+        "KILOCALORIE",
+        "KILOJOULE"
+      ]
+    },
+    {
+      "nutrient": "PROTEIN",
+      "patterns": [
+        {
+          "text": "Protein",
+          "strength": "EXACT"
+        },
+        {
+          "text": "Proteins",
+          "strength": "NORMALISED"
+        }
+      ],
+      "expectedUnits": [
+        "GRAM"
+      ]
+    },
+    {
+      "nutrient": "CARBOHYDRATE",
+      "patterns": [
+        {
+          "text": "Carbohydrate",
+          "strength": "EXACT"
+        },
+        {
+          "text": "Carbohydrates",
+          "strength": "NORMALISED"
+        },
+        {
+          "text": "Total Carbohydrate",
+          "strength": "NORMALISED"
+        },
+        {
+          "text": "Carbohydrate (g)",
+          "strength": "NORMALISED"
+        }
+      ],
+      "expectedUnits": [
+        "GRAM"
+      ]
+    },
+    {
+      "nutrient": "TOTAL_SUGARS",
+      "patterns": [
+        {
+          "text": "Total Sugars",
+          "strength": "EXACT"
+        },
+        {
+          "text": "Total Sugar",
+          "strength": "NORMALISED"
+        },
+        {
+          "text": "Sugars",
+          "strength": "NORMALISED"
+        },
+        {
+          "text": "of which Sugars",
+          "strength": "NORMALISED"
+        }
+      ],
+      "expectedUnits": [
+        "GRAM"
+      ]
+    },
+    {
+      "nutrient": "ADDED_SUGARS",
+      "patterns": [
+        {
+          "text": "Added Sugars",
+          "strength": "EXACT"
+        },
+        {
+          "text": "Added Sugar",
+          "strength": "NORMALISED"
+        }
+      ],
+      "expectedUnits": [
+        "GRAM"
+      ]
+    },
+    {
+      "nutrient": "DIETARY_FIBRE",
+      "patterns": [
+        {
+          "text": "Dietary Fibre",
+          "strength": "EXACT"
+        },
+        {
+          "text": "Dietary Fiber",
+          "strength": "NORMALISED"
+        },
+        {
+          "text": "Fibre",
+          "strength": "HEURISTIC"
+        }
+      ],
+      "expectedUnits": [
+        "GRAM"
+      ]
+    },
+    {
+      "nutrient": "TOTAL_FAT",
+      "patterns": [
+        {
+          "text": "Total Fat",
+          "strength": "EXACT"
+        },
+        {
+          "text": "Fat",
+          "strength": "NORMALISED"
+        }
+      ],
+      "expectedUnits": [
+        "GRAM"
+      ]
+    },
+    {
+      "nutrient": "SATURATED_FAT",
+      "patterns": [
+        {
+          "text": "Saturated Fat",
+          "strength": "EXACT"
+        },
+        {
+          "text": "Saturated Fatty Acids",
+          "strength": "NORMALISED"
+        },
+        {
+          "text": "Sat. Fat",
+          "strength": "NORMALISED"
+        },
+        {
+          "text": "of which Saturates",
+          "strength": "NORMALISED"
+        }
+      ],
+      "expectedUnits": [
+        "GRAM"
+      ]
+    },
+    {
+      "nutrient": "TRANS_FAT",
+      "patterns": [
+        {
+          "text": "Trans Fat",
+          "strength": "EXACT"
+        },
+        {
+          "text": "Trans Fatty Acids",
+          "strength": "NORMALISED"
+        },
+        {
+          "text": "Trans Fatty Acid",
+          "strength": "NORMALISED"
+        }
+      ],
+      "expectedUnits": [
+        "GRAM"
+      ]
+    },
+    {
+      "nutrient": "MONOUNSATURATED_FAT",
+      "patterns": [
+        {
+          "text": "Monounsaturated Fat",
+          "strength": "EXACT"
+        },
+        {
+          "text": "Monounsaturated Fatty Acids",
+          "strength": "NORMALISED"
+        },
+        {
+          "text": "MUFA",
+          "strength": "NORMALISED"
+        }
+      ],
+      "expectedUnits": [
+        "GRAM"
+      ]
+    },
+    {
+      "nutrient": "POLYUNSATURATED_FAT",
+      "patterns": [
+        {
+          "text": "Polyunsaturated Fat",
+          "strength": "EXACT"
+        },
+        {
+          "text": "Polyunsaturated Fatty Acids",
+          "strength": "NORMALISED"
+        },
+        {
+          "text": "PUFA",
+          "strength": "NORMALISED"
+        }
+      ],
+      "expectedUnits": [
+        "GRAM"
+      ]
+    },
+    {
+      "nutrient": "CHOLESTEROL",
+      "patterns": [
+        {
+          "text": "Cholesterol",
+          "strength": "EXACT"
+        }
+      ],
+      "expectedUnits": [
+        "MILLIGRAM",
+        "GRAM"
+      ]
+    },
+    {
+      "nutrient": "SODIUM",
+      "patterns": [
+        {
+          "text": "Sodium",
+          "strength": "EXACT"
+        },
+        {
+          "text": "Sodium (mg)",
+          "strength": "NORMALISED"
+        }
+      ],
+      "expectedUnits": [
+        "MILLIGRAM",
+        "GRAM"
+      ]
+    }
+  ]
+}

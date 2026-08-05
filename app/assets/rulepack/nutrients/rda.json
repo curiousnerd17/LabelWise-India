@@ -1,0 +1,40 @@
+{
+  "denominators": [
+    {
+      "constantId": "const.rda.energy",
+      "nutrient": "ENERGY",
+      "value": { "scaledValue": 20000, "unit": "KILOCALORIE" },
+      "sourceRefs": ["src.fssai.labelling.2020"]
+    },
+    {
+      "constantId": "const.rda.total-fat",
+      "nutrient": "TOTAL_FAT",
+      "value": { "scaledValue": 6700, "unit": "GRAM" },
+      "sourceRefs": ["src.fssai.labelling.2020"]
+    },
+    {
+      "constantId": "const.rda.saturated-fat",
+      "nutrient": "SATURATED_FAT",
+      "value": { "scaledValue": 2200, "unit": "GRAM" },
+      "sourceRefs": ["src.fssai.labelling.2020"]
+    },
+    {
+      "constantId": "const.rda.trans-fat",
+      "nutrient": "TRANS_FAT",
+      "value": { "scaledValue": 200, "unit": "GRAM" },
+      "sourceRefs": ["src.fssai.labelling.2020"]
+    },
+    {
+      "constantId": "const.rda.added-sugars",
+      "nutrient": "ADDED_SUGARS",
+      "value": { "scaledValue": 5000, "unit": "GRAM" },
+      "sourceRefs": ["src.fssai.labelling.2020"]
+    },
+    {
+      "constantId": "const.rda.sodium",
+      "nutrient": "SODIUM",
+      "value": { "scaledValue": 20000, "unit": "MILLIGRAM" },
+      "sourceRefs": ["src.fssai.labelling.2020"]
+    }
+  ]
+}

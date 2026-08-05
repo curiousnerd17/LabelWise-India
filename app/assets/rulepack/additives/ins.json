@@ -1,0 +1,943 @@
+{
+  "additives": [
+    {
+      "insNumber": 100,
+      "commonName": "Curcumin",
+      "alternateNames": [
+        "Turmeric yellow"
+      ],
+      "functionalClass": "COLOUR",
+      "descriptionMessageId": "msg.additive.ins-100",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section G.a, item 3",
+            "entryName": "Curcumin or turmeric",
+            "foodProducts": "Biscuits",
+            "limit": "GMP"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 101,
+      "commonName": "Riboflavin",
+      "alternateNames": [
+        "Vitamin B2"
+      ],
+      "functionalClass": "COLOUR",
+      "descriptionMessageId": "msg.additive.ins-101",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section G.a, item 9",
+            "entryName": "Riboflavin, Lactoflavin",
+            "foodProducts": "Biscuits",
+            "limit": "GMP"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 102,
+      "commonName": "Tartrazine",
+      "functionalClass": "COLOUR",
+      "descriptionMessageId": "msg.additive.ins-102",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section G.b, item 4",
+            "entryName": "Tartrazine",
+            "foodProducts": "Biscuits",
+            "limit": "100 ppm max (singly or in combination)"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 110,
+      "commonName": "Sunset Yellow FCF",
+      "functionalClass": "COLOUR",
+      "descriptionMessageId": "msg.additive.ins-110",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section G.b, item 5",
+            "entryName": "Sunset Yellow FCF",
+            "foodProducts": "Biscuits",
+            "limit": "100 ppm max (singly or in combination)"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 122,
+      "commonName": "Carmoisine",
+      "alternateNames": [
+        "Azorubine"
+      ],
+      "functionalClass": "COLOUR",
+      "descriptionMessageId": "msg.additive.ins-122",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section G.b, item 2",
+            "entryName": "Carmoisine",
+            "foodProducts": "Biscuits",
+            "limit": "100 ppm max (singly or in combination)"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 124,
+      "commonName": "Ponceau 4R",
+      "functionalClass": "COLOUR",
+      "descriptionMessageId": "msg.additive.ins-124",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section G.b, item 1",
+            "entryName": "Ponceau 4R",
+            "foodProducts": "Biscuits",
+            "limit": "100 ppm max (singly or in combination)"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 133,
+      "commonName": "Brilliant Blue FCF",
+      "functionalClass": "COLOUR",
+      "descriptionMessageId": "msg.additive.ins-133",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section G.b, item 7",
+            "entryName": "Brilliant blue FCF",
+            "foodProducts": "Biscuits",
+            "limit": "100 ppm max (singly or in combination)"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 143,
+      "commonName": "Fast Green FCF",
+      "functionalClass": "COLOUR",
+      "descriptionMessageId": "msg.additive.ins-143",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section G.b, item 8",
+            "entryName": "Fast green FCF",
+            "foodProducts": "Biscuits",
+            "limit": "100 ppm max (singly or in combination)"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 200,
+      "commonName": "Sorbic acid",
+      "functionalClass": "PRESERVATIVE",
+      "descriptionMessageId": "msg.additive.ins-200",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section F, item 2",
+            "entryName": "Sorbic acid or its Sodium, Potassium or Calcium salts (calculated as sorbic acid)",
+            "foodProducts": "Bread",
+            "limit": "1000 ppm max"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 202,
+      "commonName": "Potassium sorbate",
+      "functionalClass": "PRESERVATIVE",
+      "descriptionMessageId": "msg.additive.ins-202",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section F, item 2",
+            "entryName": "Sorbic acid or its Sodium, Potassium or Calcium salts (calculated as sorbic acid)",
+            "foodProducts": "Bread",
+            "limit": "1000 ppm max"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 211,
+      "commonName": "Sodium benzoate",
+      "functionalClass": "PRESERVATIVE",
+      "descriptionMessageId": "msg.additive.ins-211",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "UNKNOWN",
+        "note": "Appendix A Table 2 section C item 2 names 'Benzoic acid' (INS 210), for sweets only. Sodium benzoate is not named in Tables 1 or 2."
+      }
+    },
+    {
+      "insNumber": 223,
+      "commonName": "Sodium metabisulphite",
+      "alternateNames": [
+        "Sodium metabisulfite"
+      ],
+      "functionalClass": "PRESERVATIVE",
+      "descriptionMessageId": "msg.additive.ins-223",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section M, item 2",
+            "entryName": "Sodium metabisulphite",
+            "foodProducts": "Biscuits",
+            "limit": "GMP"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 260,
+      "commonName": "Acetic acid",
+      "functionalClass": "ACIDITY_REGULATOR",
+      "descriptionMessageId": "msg.additive.ins-260",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section A, item 4",
+            "entryName": "Acetic acid or Lactic acid",
+            "foodProducts": "Bread; Biscuits",
+            "limit": "Bread 2500 ppm max; Biscuits GMP"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 270,
+      "commonName": "Lactic acid",
+      "functionalClass": "ACIDITY_REGULATOR",
+      "descriptionMessageId": "msg.additive.ins-270",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section A, item 4",
+            "entryName": "Acetic acid or Lactic acid",
+            "foodProducts": "Bread; Biscuits",
+            "limit": "Bread 2500 ppm max; Biscuits GMP"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 282,
+      "commonName": "Calcium propionate",
+      "functionalClass": "PRESERVATIVE",
+      "descriptionMessageId": "msg.additive.ins-282",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section F, item 1",
+            "entryName": "Calcium or sodium propionate",
+            "foodProducts": "Bread",
+            "limit": "5000 ppm max"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 296,
+      "commonName": "Malic acid",
+      "functionalClass": "ACIDITY_REGULATOR",
+      "descriptionMessageId": "msg.additive.ins-296",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section A, item 6",
+            "entryName": "Malic acid",
+            "foodProducts": "Biscuits",
+            "limit": "GMP"
+          },
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 2, section I, item 5",
+            "entryName": "Malic acid",
+            "foodProducts": "Instant mixes such as idli mix, dosa mix, upma mix, etc.",
+            "limit": "GMP"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 300,
+      "commonName": "Ascorbic acid",
+      "alternateNames": [
+        "Vitamin C"
+      ],
+      "functionalClass": "ANTIOXIDANT",
+      "descriptionMessageId": "msg.additive.ins-300",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section E, item 1",
+            "entryName": "Ascorbic acid",
+            "foodProducts": "Bread; Biscuits",
+            "limit": "GMP"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 306,
+      "commonName": "Mixed tocopherols concentrate",
+      "alternateNames": [
+        "Tocopherols"
+      ],
+      "functionalClass": "ANTIOXIDANT",
+      "descriptionMessageId": "msg.additive.ins-306",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 2, section A, item 1",
+            "entryName": "Tocopherol",
+            "foodProducts": "Chiwda, Bhujia, Dalmoth, Kadubale, Kharaboondi, spiced & fried dals, banana chips and similar fried products",
+            "limit": "GMP"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 319,
+      "commonName": "Tertiary butylhydroquinone",
+      "alternateNames": [
+        "TBHQ"
+      ],
+      "functionalClass": "ANTIOXIDANT",
+      "descriptionMessageId": "msg.additive.ins-319",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 2, section A, item 4",
+            "entryName": "Tertiary butyl hydro quinone (TBHQ)",
+            "foodProducts": "Chiwda, Bhujia, Dalmoth, Kadubale, Kharaboondi, spiced & fried dals, banana chips and similar fried products",
+            "limit": "200 ppm max"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 320,
+      "commonName": "Butylated hydroxyanisole",
+      "alternateNames": [
+        "BHA"
+      ],
+      "functionalClass": "ANTIOXIDANT",
+      "descriptionMessageId": "msg.additive.ins-320",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 2, section A, item 3",
+            "entryName": "Butylated hydroxy anisole (BHA)",
+            "foodProducts": "Chiwda, Bhujia, Dalmoth, Kadubale, Kharaboondi, spiced & fried dals, banana chips and similar fried products",
+            "limit": "200 ppm max"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 321,
+      "commonName": "Butylated hydroxytoluene",
+      "alternateNames": [
+        "BHT"
+      ],
+      "functionalClass": "ANTIOXIDANT",
+      "descriptionMessageId": "msg.additive.ins-321",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "UNKNOWN",
+        "note": "Butylated hydroxytoluene (BHT) is not named in Appendix A Tables 1 or 2; only BHA and TBHQ appear."
+      }
+    },
+    {
+      "insNumber": 322,
+      "commonName": "Lecithin",
+      "alternateNames": [
+        "Soy lecithin",
+        "Soya lecithin"
+      ],
+      "functionalClass": "EMULSIFIER",
+      "descriptionMessageId": "msg.additive.ins-322",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section B, item 7",
+            "entryName": "Lecithin",
+            "foodProducts": "Bread",
+            "limit": "GMP"
+          },
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 2, section A, item 2",
+            "entryName": "Lecithin",
+            "foodProducts": "Chiwda, Bhujia, Dalmoth, Kadubale, Kharaboondi, spiced & fried dals, banana chips and similar fried products",
+            "limit": "GMP"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 330,
+      "commonName": "Citric acid",
+      "functionalClass": "ACIDITY_REGULATOR",
+      "descriptionMessageId": "msg.additive.ins-330",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section A, item 5",
+            "entryName": "Citric acid",
+            "foodProducts": "Biscuits",
+            "limit": "GMP"
+          },
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 2, section I, item 4",
+            "entryName": "Citric acid",
+            "foodProducts": "Instant mixes such as idli mix, dosa mix, upma mix, etc.",
+            "limit": "GMP"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 334,
+      "commonName": "Tartaric acid",
+      "functionalClass": "ACIDITY_REGULATOR",
+      "descriptionMessageId": "msg.additive.ins-334",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section A, item 7",
+            "entryName": "Tartaric acid",
+            "foodProducts": "Biscuits",
+            "limit": "GMP"
+          },
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 2, section I, item 3",
+            "entryName": "Tartaric acid",
+            "foodProducts": "Instant mixes such as idli mix, dosa mix, upma mix, etc.",
+            "limit": "GMP"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 412,
+      "commonName": "Guar gum",
+      "functionalClass": "THICKENER",
+      "descriptionMessageId": "msg.additive.ins-412",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section B, item 5",
+            "entryName": "Guar gum",
+            "foodProducts": "Bread",
+            "limit": "5000 ppm max"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 415,
+      "commonName": "Xanthan gum",
+      "functionalClass": "THICKENER",
+      "descriptionMessageId": "msg.additive.ins-415",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "UNKNOWN",
+        "note": "Xanthan gum is not named in Appendix A Tables 1 or 2."
+      }
+    },
+    {
+      "insNumber": 422,
+      "commonName": "Glycerol",
+      "alternateNames": [
+        "Glycerine"
+      ],
+      "functionalClass": "HUMECTANT",
+      "descriptionMessageId": "msg.additive.ins-422",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section B, item 8",
+            "entryName": "Glycerine",
+            "foodProducts": "Bread",
+            "limit": "GMP"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 450,
+      "commonName": "Diphosphates",
+      "alternateNames": [
+        "Pyrophosphates"
+      ],
+      "functionalClass": "RAISING_AGENT",
+      "descriptionMessageId": "msg.additive.ins-450",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "UNKNOWN",
+        "note": "Appendix A Table 1 section F item 5 names 'Acid sodium pyrophosphate' for bread. That is one specific diphosphate, not the INS 450 group; claiming the group from a single member would overstate the evidence."
+      }
+    },
+    {
+      "insNumber": 466,
+      "commonName": "Sodium carboxymethyl cellulose",
+      "alternateNames": [
+        "CMC"
+      ],
+      "functionalClass": "THICKENER",
+      "descriptionMessageId": "msg.additive.ins-466",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 2, section B, item 2",
+            "entryName": "Carboxymethyl cellulose",
+            "foodProducts": "Chiwda, Bhujia, Dalmoth, Kadubale, Kharaboondi, spiced & fried dals, banana chips and similar fried products",
+            "limit": "0.5% max"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 471,
+      "commonName": "Mono- and diglycerides of fatty acids",
+      "functionalClass": "EMULSIFIER",
+      "descriptionMessageId": "msg.additive.ins-471",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "UNKNOWN",
+        "note": "Appendix A Table 1 names 'Glycerol monostearate' (bread) and 'Di-Acetyl tartaric acid esters of mono and diglycerides'. Neither is the INS 471 group."
+      }
+    },
+    {
+      "insNumber": 481,
+      "commonName": "Sodium stearoyl lactylate",
+      "functionalClass": "EMULSIFIER",
+      "descriptionMessageId": "msg.additive.ins-481",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section B, item 10",
+            "entryName": "Sodium steroyl 2 lactylate of Calcium steroyl 2 lactylate (Singly or in combination)",
+            "foodProducts": "Bread",
+            "limit": "5000 ppm max"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 500,
+      "commonName": "Sodium carbonates",
+      "alternateNames": [
+        "Sodium bicarbonate",
+        "Baking soda"
+      ],
+      "functionalClass": "RAISING_AGENT",
+      "descriptionMessageId": "msg.additive.ins-500",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "UNKNOWN",
+        "note": "Appendix A Table 2 section I item 1 names 'Sodium bicarbonate' for instant mixes. That is one member of the INS 500 group; claiming the group would overstate the evidence."
+      }
+    },
+    {
+      "insNumber": 503,
+      "commonName": "Ammonium carbonates",
+      "alternateNames": [
+        "Ammonium bicarbonate"
+      ],
+      "functionalClass": "RAISING_AGENT",
+      "descriptionMessageId": "msg.additive.ins-503",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section I, item 3",
+            "entryName": "Ammonium carbonate",
+            "foodProducts": "Bread; Biscuits",
+            "limit": "5000 ppm max"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 551,
+      "commonName": "Silicon dioxide",
+      "alternateNames": [
+        "Silica"
+      ],
+      "functionalClass": "ANTICAKING_AGENT",
+      "descriptionMessageId": "msg.additive.ins-551",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "UNKNOWN",
+        "note": "Appendix A Table 2 section D item 3 names 'Silicates of Calcium, Magnesium, or Sodium or Silicon dioxide', but every food-product column in that row is '-', so no permission is granted by that table."
+      }
+    },
+    {
+      "insNumber": 621,
+      "commonName": "Monosodium glutamate",
+      "alternateNames": [
+        "MSG"
+      ],
+      "functionalClass": "FLAVOUR_ENHANCER",
+      "descriptionMessageId": "msg.additive.ins-621",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "UNKNOWN",
+        "note": "Monosodium glutamate is not named in Appendix A Tables 1 or 2. Table 1 section K allows an unnamed 'Flavour improver/enhancer' at GMP for biscuits, which is too unspecific to cite as evidence for MSG."
+      }
+    },
+    {
+      "insNumber": 627,
+      "commonName": "Disodium guanylate",
+      "functionalClass": "FLAVOUR_ENHANCER",
+      "descriptionMessageId": "msg.additive.ins-627",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "UNKNOWN",
+        "note": "Disodium guanylate is not named in Appendix A Tables 1 or 2."
+      }
+    },
+    {
+      "insNumber": 631,
+      "commonName": "Disodium inosinate",
+      "functionalClass": "FLAVOUR_ENHANCER",
+      "descriptionMessageId": "msg.additive.ins-631",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "UNKNOWN",
+        "note": "Disodium inosinate is not named in Appendix A Tables 1 or 2."
+      }
+    },
+    {
+      "insNumber": 635,
+      "commonName": "Disodium ribonucleotides",
+      "functionalClass": "FLAVOUR_ENHANCER",
+      "descriptionMessageId": "msg.additive.ins-635",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "UNKNOWN",
+        "note": "Disodium ribonucleotides are not named in Appendix A Tables 1 or 2."
+      }
+    },
+    {
+      "insNumber": 950,
+      "commonName": "Acesulfame potassium",
+      "alternateNames": [
+        "Acesulfame K"
+      ],
+      "functionalClass": "SWEETENER",
+      "descriptionMessageId": "msg.additive.ins-950",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section H, item 2",
+            "entryName": "Acesulphame K",
+            "foodProducts": "Bread; Biscuits",
+            "limit": "1000 ppm max"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 951,
+      "commonName": "Aspartame",
+      "functionalClass": "SWEETENER",
+      "descriptionMessageId": "msg.additive.ins-951",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section H, item 1",
+            "entryName": "Aspartame",
+            "foodProducts": "Bread; Biscuits",
+            "limit": "2200 ppm max"
+          }
+        ]
+      }
+    },
+    {
+      "insNumber": 955,
+      "commonName": "Sucralose",
+      "functionalClass": "SWEETENER",
+      "descriptionMessageId": "msg.additive.ins-955",
+      "evidenceStrength": "ESTABLISHED",
+      "sourceRefs": [
+        "src.fssai.additives.2011",
+        "src.codex.ins.cxg36"
+      ],
+      "indianPermission": {
+        "status": "PERMITTED",
+        "evidence": [
+          {
+            "sourceRef": "src.fssai.additives.2011",
+            "scheduleRef": "Appendix A, Table 1, section H, item 3",
+            "entryName": "Sucralose",
+            "foodProducts": "Bread; Biscuits",
+            "limit": "750 ppm max"
+          }
+        ]
+      }
+    }
+  ]
+}

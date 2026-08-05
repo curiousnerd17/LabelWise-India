@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "INS-keyed additive records",
+  "description": "Keyed on the INS integer, exploiting India's mandatory INS declaration (ADR-0005, FR-KB-06).",
+  "type": "object",
+  "required": [
+    "additives"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "additives": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "insNumber",
+          "commonName",
+          "functionalClass",
+          "descriptionMessageId",
+          "evidenceStrength",
+          "sourceRefs",
+          "indianPermission"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "insNumber": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1999
+          },
+          "commonName": {
+            "type": "string",
+            "minLength": 1
+          },
+          "alternateNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "functionalClass": {
+            "enum": [
+              "ACIDITY_REGULATOR",
+              "ANTICAKING_AGENT",
+              "ANTIFOAMING_AGENT",
+              "ANTIOXIDANT",
+              "BULKING_AGENT",
+              "COLOUR",
+              "COLOUR_RETENTION_AGENT",
+              "EMULSIFIER",
+              "FIRMING_AGENT",
+              "FLAVOUR_ENHANCER",
+              "FLOUR_TREATMENT_AGENT",
+              "FOAMING_AGENT",
+              "GELLING_AGENT",
+              "GLAZING_AGENT",
+              "HUMECTANT",
+              "PRESERVATIVE",
+              "PROPELLANT",
+              "RAISING_AGENT",
+              "SEQUESTRANT",
+              "STABILISER",
+              "SWEETENER",
+              "THICKENER"
+            ]
+          },
+          "descriptionMessageId": {
+            "$ref": "common.schema.json#/$defs/messageId"
+          },
+          "evidenceStrength": {
+            "enum": [
+              "ESTABLISHED",
+              "LIMITED",
+              "CONTESTED"
+            ]
+          },
+          "sourceRefs": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "common.schema.json#/$defs/sourceId"
+            }
+          },
+          "indianPermission": {
+            "type": "object",
+            "description": "Indian regulatory permission, traced to the primary source. Appendix A of the FSS (Food Products Standards and Food Additives) Regulations 2011 lists additives BY NAME, per food product, with a limit — it contains no INS numbers. A global boolean is therefore not a claim the regulation makes. status=PERMITTED requires at least one evidence entry citing the exact table; where no evidence was found the status is UNKNOWN, never false.",
+            "required": [
+              "status"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "enum": [
+                  "PERMITTED",
+                  "UNKNOWN"
+                ],
+                "description": "PERMITTED: found by name in a cited schedule, for the listed food products only. UNKNOWN: not found in the schedules examined. UNKNOWN does NOT mean prohibited — permission may exist in a table or regulation not yet examined."
+              },
+              "evidence": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "sourceRef",
+                    "scheduleRef",
+                    "entryName",
+                    "foodProducts",
+                    "limit"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "sourceRef": {
+                      "$ref": "common.schema.json#/$defs/sourceId"
+                    },
+                    "scheduleRef": {
+                      "type": "string",
+                      "minLength": 3,
+                      "description": "Exact schedule location, e.g. 'Appendix A, Table 1, section G.b, item 4'."
+                    },
+                    "entryName": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "The additive name AS PRINTED in the schedule. The INS-to-name mapping is our inference, not the regulation's."
+                    },
+                    "foodProducts": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "The food products the cited column covers. Permission does not extend beyond them."
+                    },
+                    "limit": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "The limit as printed, e.g. 'GMP' or '100 ppm max'."
+                    }
+                  }
+                }
+              },
+              "note": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "indianPermission": {
+                  "properties": {
+                    "status": {
+                      "const": "PERMITTED"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "indianPermission"
+              ]
+            },
+            "then": {
+              "properties": {
+                "indianPermission": {
+                  "required": [
+                    "evidence"
+                  ],
+                  "properties": {
+                    "evidence": {
+                      "minItems": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

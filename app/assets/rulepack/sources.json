@@ -1,0 +1,35 @@
+{
+  "sources": [
+    {
+      "sourceId": "src.fssai.labelling.2020",
+      "title": "Food Safety and Standards (Labelling and Display) Regulations, 2020",
+      "publisher": "Food Safety and Standards Authority of India",
+      "publicationDate": "2020-12-14",
+      "accessDate": "2026-08-04",
+      "sourceType": "REGULATION",
+      "evidenceStrength": "ESTABLISHED",
+      "notes": "Gazetted 14 December 2020. Source for the mandatory nutrition declarations, the per-100 g/100 ml and per-serve %RDA presentation, and the RDA denominators in nutrients/rda.json."
+    },
+    {
+      "sourceId": "src.fssai.additives.2011",
+      "title": "Food Safety and Standards (Food Products Standards and Food Additives) Regulations, 2011 — Appendix A: List of Food Additives (revised 30-12-2011)",
+      "publisher": "Food Safety and Standards Authority of India",
+      "publicationDate": "2011-08-01",
+      "accessDate": "2026-08-04",
+      "sourceType": "REGULATION",
+      "evidenceStrength": "ESTABLISHED",
+      "notes": "Fetched and read 2026-08-04. Appendix A lists additives BY NAME across 15 food-product tables, each with a per-product limit. It contains NO INS numbers, so every INS-to-name mapping in ins.json is our inference and is recorded in each evidence entry as entryName. Only Tables 1 (bread and biscuits) and 2 (snacks/savouries and related) were examined; Tables 3-15 were not, so UNKNOWN never means prohibited.",
+      "url": "https://fssai.gov.in/upload/uploadfiles/files/appendix_a_and_b_revised(30-12-2011).pdf"
+    },
+    {
+      "sourceId": "src.codex.ins.cxg36",
+      "title": "Class Names and the International Numbering System for Food Additives (CXG 36-1989)",
+      "publisher": "Codex Alimentarius Commission, FAO/WHO",
+      "publicationDate": "1989-01-01",
+      "accessDate": "2026-08-04",
+      "sourceType": "GOVERNMENT_GUIDANCE",
+      "evidenceStrength": "ESTABLISHED",
+      "notes": "Origin of the INS numbering system and of the functional class names used in additives/ins.json."
+    }
+  ]
+}

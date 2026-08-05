@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Product categories",
+  "description": "Category is an optional attribute, never a precondition (ADR-0013, FR-CAT-02). Adding one is a data-only change (FR-CAT-03).",
+  "type": "object",
+  "required": [
+    "categories"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "categoryId",
+          "nameMessageId",
+          "defaultBasis",
+          "status"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "categoryId": {
+            "$ref": "common.schema.json#/$defs/categoryId"
+          },
+          "nameMessageId": {
+            "$ref": "common.schema.json#/$defs/messageId"
+          },
+          "defaultBasis": {
+            "$ref": "common.schema.json#/$defs/basis"
+          },
+          "status": {
+            "enum": [
+              "PRIORITY",
+              "VERIFICATION_ONLY",
+              "SUPPORTED"
+            ],
+            "description": "VERIFICATION_ONLY marks the fifth category; it is not held to the accuracy bar (ADR-0024)."
+          },
+          "inapplicableInvariants": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^INV-\\d{2}$"
+            },
+            "description": "e.g. INV-06 does not apply on a volume basis. INAPPLICABLE is a first-class outcome, not a silent skip."
+          }
+        }
+      }
+    }
+  }
+}

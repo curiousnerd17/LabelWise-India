@@ -1,0 +1,36 @@
+Creative Commons Attribution 4.0 International (CC BY 4.0)
+
+The curated knowledge base in this directory — nutrition thresholds, additive
+records, source citations, category definitions and message text — is licensed
+under CC BY 4.0.
+
+    https://creativecommons.org/licenses/by/4.0/
+    Full legal code: https://creativecommons.org/licenses/by/4.0/legalcode
+
+You are free to share and adapt this material for any purpose, including
+commercially, provided you give appropriate credit, link to the licence, and
+indicate if changes were made.
+
+ATTRIBUTION
+-----------
+    LabelWise India knowledge base
+    https://github.com/<org>/labelwise-india
+    Licensed under CC BY 4.0
+
+SCOPE
+-----
+This licence covers the CONTENTS OF THIS DIRECTORY ONLY. All source code in
+this repository is licensed under the Apache License 2.0 — see /LICENSE.
+
+WHY SEPARATE
+------------
+The long-term intent is to publish this knowledge base as a standalone, citable
+dataset that other projects can consume. A software licence applied to a dataset
+creates ambiguity for exactly that reuse (ADR-0017, PROJECT_VISION.md Stage 4).
+
+NO WARRANTY
+-----------
+This content is provided for educational and informational purposes. It is not
+medical advice and does not determine allergen safety. Every threshold and
+additive record carries a citation in `sources.json`; consult the primary
+sources for authoritative guidance.
