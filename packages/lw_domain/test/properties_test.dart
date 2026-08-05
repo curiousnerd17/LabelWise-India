@@ -240,6 +240,7 @@ void main() {
   });
 
   milestone3Properties();
+  milestone4Properties();
 }
 
 /// Property tests added by Milestone 3 — PT-05, PT-13, PT-14, PT-20.
@@ -424,6 +425,171 @@ void milestone3Properties() {
           other,
         ]);
         expect(meet, other);
+      });
+    });
+  });
+}
+
+/// Property tests added by Milestone 4 — PT-06, PT-16, and two parser
+/// invariants provable for the first time now that stages exist.
+void milestone4Properties() {
+  group('PT-06 stages are deterministic (FR-PAR-02)', () {
+    test('PT-06 S1 run twice on identical input yields identical output', () {
+      // The property most likely to break by accident — a Set built from
+      // unordered input, or grouping by hash, passes CI-03 and still produces
+      // input-order-dependent results. Written first for that reason.
+      forAll('S1 determinism', (Gen gen) {
+        final RecognitionResult input = gen.recognitionResult();
+        final StageResult<NormalisedText> a = normaliseText(input);
+        final StageResult<NormalisedText> b = normaliseText(input);
+        expect(a.isSuccess, b.isSuccess);
+        if (a.isSuccess) {
+          final NormalisedText x = a.valueOrNull!;
+          final NormalisedText y = b.valueOrNull!;
+          expect(x.elements.length, y.elements.length);
+          for (int i = 0; i < x.elements.length; i++) {
+            expect(x.elements[i], y.elements[i]);
+          }
+        } else {
+          expect(a.failureOrNull, b.failureOrNull);
+        }
+      });
+    });
+
+    test('PT-06 S2 is independent of the order elements arrive in', () {
+      // Reversing the input must not change the layout. If it does, the
+      // clustering depends on arrival order rather than on geometry.
+      forAll('S2 order independence', (Gen gen) {
+        final NormalisedText forward =
+            normaliseText(gen.parseableResult()).valueOrNull!;
+        final NormalisedText reversed =
+            NormalisedText(elements: forward.elements.reversed.toList());
+
+        final StageResult<LabelLayout> a = reconstructLayout(forward);
+        final StageResult<LabelLayout> b = reconstructLayout(reversed);
+        expect(a.isSuccess, b.isSuccess);
+        if (a.isSuccess) {
+          final List<List<int>> x = a.valueOrNull!.lines
+              .map((LayoutLine l) => l.sourceIndices)
+              .toList();
+          final List<List<int>> y = b.valueOrNull!.lines
+              .map((LayoutLine l) => l.sourceIndices)
+              .toList();
+          expect(x.length, y.length);
+          for (int i = 0; i < x.length; i++) {
+            expect(x[i], y[i]);
+          }
+        }
+      });
+    });
+  });
+
+  group('PT-16 every stage is total (ARCHITECTURE 6.2)', () {
+    test('PT-16 S1 never throws, whatever the input', () {
+      forAll('S1 totality', (Gen gen) {
+        final RecognitionResult input = gen.recognitionResult();
+        expect(() => normaliseText(input), returnsNormally);
+        final StageResult<NormalisedText> r = normaliseText(input);
+        expect(r.isSuccess ? r.valueOrNull : r.failureOrNull, isNotNull);
+      });
+    });
+
+    test('PT-16 S2 never throws, whatever S1 produced', () {
+      forAll('S2 totality', (Gen gen) {
+        final StageResult<NormalisedText> s1 =
+            normaliseText(gen.recognitionResult());
+        if (!s1.isSuccess) {
+          return;
+        }
+        expect(() => reconstructLayout(s1.valueOrNull!), returnsNormally);
+        final StageResult<LabelLayout> r = reconstructLayout(s1.valueOrNull!);
+        expect(r.isSuccess ? r.valueOrNull : r.failureOrNull, isNotNull);
+      });
+    });
+
+    test('PT-16 a failure is never an empty success (FR-PAR-17)', () {
+      forAll('no empty success', (Gen gen) {
+        final StageResult<NormalisedText> r =
+            normaliseText(gen.recognitionResult());
+        expect(r.isSuccess, isNot(r.failureOrNull != null));
+      });
+    });
+  });
+
+  group('S1 invariants (FR-PAR-06, FR-OCR-06)', () {
+    test('S1 preserves element count and source order', () {
+      // Normalisation may change text. It must never add, remove or reorder,
+      // because sourceIndex is the mapping every later stage relies on.
+      forAll('S1 structure preservation', (Gen gen) {
+        final RecognitionResult input = gen.parseableResult();
+        final NormalisedText out = normaliseText(input).valueOrNull!;
+        expect(out.elements.length, input.elements.length);
+        for (int i = 0; i < out.elements.length; i++) {
+          expect(out.elements[i].sourceIndex, i);
+          expect(out.elements[i].originalText, input.elements[i].text);
+          expect(out.elements[i].region, input.elements[i].region);
+        }
+      });
+    });
+
+    test('S1 records a substitution exactly when text changed', () {
+      // FR-PAR-06 as an invariant rather than an example: a changed element
+      // always carries evidence, and an unchanged one never carries noise.
+      forAll('substitution iff changed', (Gen gen) {
+        final NormalisedText out =
+            normaliseText(gen.parseableResult()).valueOrNull!;
+        for (final NormalisedElement e in out.elements) {
+          if (e.wasChanged) {
+            expect(e.substitutions, isNotEmpty,
+                reason: '"\${e.originalText}" -> "\${e.text}" unrecorded');
+          } else {
+            expect(e.substitutions, isEmpty,
+                reason: 'unchanged element carries a substitution');
+          }
+        }
+      });
+    });
+  });
+
+  group('S2 invariants (FR-PAR-03)', () {
+    test('S2 assigns every positioned element to exactly one line', () {
+      forAll('line partition', (Gen gen) {
+        final NormalisedText s1 =
+            normaliseText(gen.parseableResult()).valueOrNull!;
+        final StageResult<LabelLayout> s2 = reconstructLayout(s1);
+        if (!s2.isSuccess) {
+          return;
+        }
+        final List<int> assigned = <int>[
+          for (final LayoutLine l in s2.valueOrNull!.lines) ...l.sourceIndices,
+        ];
+        final Set<int> unique = assigned.toSet();
+        expect(unique.length, assigned.length,
+            reason: 'an element appears on two lines');
+        final int positioned = s1.elements
+            .where((NormalisedElement e) => e.region.height > 0)
+            .length;
+        expect(assigned.length, positioned);
+      });
+    });
+
+    test('S2 emits lines top to bottom and columns left to right', () {
+      forAll('layout ordering', (Gen gen) {
+        final NormalisedText s1 =
+            normaliseText(gen.parseableResult()).valueOrNull!;
+        final StageResult<LabelLayout> s2 = reconstructLayout(s1);
+        if (!s2.isSuccess) {
+          return;
+        }
+        final LabelLayout l = s2.valueOrNull!;
+        for (int i = 1; i < l.lines.length; i++) {
+          expect(l.lines[i].region.top,
+              greaterThanOrEqualTo(l.lines[i - 1].region.top));
+        }
+        for (int i = 1; i < l.columns.length; i++) {
+          expect(l.columns[i].left, greaterThan(l.columns[i - 1].left));
+          expect(l.columns[i].index, l.columns[i - 1].index + 1);
+        }
       });
     });
   });

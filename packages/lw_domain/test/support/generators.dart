@@ -74,6 +74,66 @@ class Gen {
     );
   }
 
+  /// A normalised bounding box with a non-zero height, so it can form a line.
+  RegionRef regionRef() {
+    final int left = intInRange(0, 8000);
+    final int top = intInRange(0, 8000);
+    return RegionRef(
+      left: left,
+      top: top,
+      right: left + intInRange(0, 1500),
+      bottom: top + intInRange(1, 400),
+    );
+  }
+
+  /// A recognition element with hostile text: leading and trailing space,
+  /// confusable characters, designators and empty strings all occur.
+  RecognitionElement recognitionElement() {
+    const List<String> texts = <String>[
+      'Energy',
+      '  Total   Fat ',
+      '1OO',
+      'B12',
+      'PROTEIN',
+      '',
+      '   ',
+      'l2.5',
+      'S0 mg',
+      'Energy 4O0 kcal',
+      '< 0.5 g',
+      'About 4 servings',
+    ];
+    return RecognitionElement(
+      text: texts[_random.nextInt(texts.length)],
+      region: regionRef(),
+      ocrConfidence:
+          _random.nextBool() ? OcrConfidence(intInRange(0, 10000)) : null,
+    );
+  }
+
+  /// Any dominant script.
+  DominantScript dominantScript() =>
+      DominantScript.values[_random.nextInt(DominantScript.values.length)];
+
+  /// A recognition result, occasionally empty and occasionally non-Latin, so
+  /// the failure paths are exercised as often as the success path.
+  RecognitionResult recognitionResult({int minElements = 0}) =>
+      RecognitionResult(
+        elements: <RecognitionElement>[
+          for (int i = 0; i < intInRange(minElements, 6); i++)
+            recognitionElement(),
+        ],
+        dominantScript: dominantScript(),
+      );
+
+  /// A recognition result guaranteed to reach S1's success path.
+  RecognitionResult parseableResult() => RecognitionResult(
+        elements: <RecognitionElement>[
+          for (int i = 0; i < intInRange(1, 6); i++) recognitionElement(),
+        ],
+        dominantScript: DominantScript.latin,
+      );
+
   /// Any basis.
   Basis basis() => Basis.values[_random.nextInt(Basis.values.length)];
 
