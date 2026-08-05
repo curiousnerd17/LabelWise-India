@@ -157,6 +157,25 @@ class Gen {
   /// exercise equality as well as ordering.
   Version version() =>
       Version(intInRange(0, 5), intInRange(0, 20), intInRange(0, 20));
+
+  /// A marker table keyed to the vocabulary [recognitionElement] produces.
+  ///
+  /// The food-label defaults would almost never match generated text, so S3
+  /// would decline on nearly every case and the S4 properties would pass
+  /// vacuously — the worst kind of green. Matching the generator's own words
+  /// keeps the pipeline properties exercising real output.
+  RegionMarkerTable markerTable() => RegionMarkerTable(<RegionMarker>[
+        RegionMarker(
+          text: 'protein',
+          kind: RegionKind.nutritionPanel,
+          strength: parseStrength(),
+        ),
+        RegionMarker(
+          text: 'b12',
+          kind: RegionKind.ingredientList,
+          strength: parseStrength(),
+        ),
+      ]);
 }
 
 /// The number of cases each property test runs.

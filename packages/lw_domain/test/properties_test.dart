@@ -241,6 +241,117 @@ void main() {
 
   milestone3Properties();
   milestone4Properties();
+  milestone5Properties();
+}
+
+/// Property tests added by Milestone 5 — PT-06 and PT-16 extended to S3 and
+/// S4, and PT-10 implemented for the first time.
+///
+/// PT-10 has been specified since Phase 1 with nothing to test: ingredient
+/// order could not be checked until a stage produced ingredients.
+void milestone5Properties() {
+  /// Runs S1 → S2 → S3 → S4 over generated input, returning null at the first
+  /// stage that declines. Declining is a valid outcome for every stage, so a
+  /// null here is not a failure.
+  Candidates? pipeline(Gen gen) {
+    final StageResult<NormalisedText> s1 =
+        normaliseText(gen.recognitionResult(minElements: 1));
+    if (!s1.isSuccess) {
+      return null;
+    }
+    final StageResult<LabelLayout> s2 = reconstructLayout(s1.valueOrNull!);
+    if (!s2.isSuccess) {
+      return null;
+    }
+    final StageResult<ClassifiedRegions> s3 =
+        classifyRegions(s2.valueOrNull!, markers: gen.markerTable());
+    if (!s3.isSuccess) {
+      return null;
+    }
+    final StageResult<Candidates> s4 = tokenise(s3.valueOrNull!);
+    return s4.isSuccess ? s4.valueOrNull : null;
+  }
+
+  group('PT-16 S3 and S4 are total (FR-PAR-17, ARCHITECTURE 6.2)', () {
+    test('no generated layout makes S3 throw', () {
+      forAll('S3 totality', (Gen gen) {
+        final StageResult<NormalisedText> s1 =
+            normaliseText(gen.recognitionResult());
+        if (!s1.isSuccess) {
+          return;
+        }
+        final StageResult<LabelLayout> s2 = reconstructLayout(s1.valueOrNull!);
+        if (!s2.isSuccess) {
+          return;
+        }
+        expect(
+          () => classifyRegions(s2.valueOrNull!, markers: gen.markerTable()),
+          returnsNormally,
+        );
+      });
+    });
+
+    test('no generated classification makes S4 throw', () {
+      forAll('S4 totality', (Gen gen) {
+        expect(() => pipeline(gen), returnsNormally);
+      });
+    });
+  });
+
+  group('PT-06 S3 and S4 are deterministic (FR-PAR-02)', () {
+    test('the same input classifies and tokenises identically twice', () {
+      forAll('S3/S4 determinism', (Gen gen) {
+        final Candidates? first = pipeline(Gen(gen.seed));
+        final Candidates? second = pipeline(Gen(gen.seed));
+        if (first == null || second == null) {
+          expect(first == null, second == null);
+          return;
+        }
+        expect(first.nutritionCandidates, second.nutritionCandidates);
+        expect(first.ingredientTokens, second.ingredientTokens);
+        expect(first.sourceIndices, second.sourceIndices);
+      });
+    });
+  });
+
+  group('PT-10 ingredient declaration order survives (MI-12)', () {
+    test('positions are 1-based and contiguous at every nesting level', () {
+      // Declaration order is descending by weight and legally meaningful. A
+      // gap or a repeat would silently reorder a legal claim.
+      void checkLevel(List<IngredientToken> tokens) {
+        for (int i = 0; i < tokens.length; i++) {
+          expect(tokens[i].position, i + 1);
+          checkLevel(tokens[i].children);
+        }
+      }
+
+      forAll('ingredient order', (Gen gen) {
+        final Candidates? c = pipeline(gen);
+        if (c == null) {
+          return;
+        }
+        checkLevel(c.ingredientTokens);
+      });
+    });
+  });
+
+  group('M5 provenance chain is never broken (owner requirement)', () {
+    test('every candidate and token traces to a real source index', () {
+      forAll('provenance chain', (Gen gen) {
+        final Candidates? c = pipeline(gen);
+        if (c == null) {
+          return;
+        }
+        for (final NutritionCandidate n in c.nutritionCandidates) {
+          expect(n.sourceIndices, isNotEmpty);
+          expect(n.sourceIndices.every((int i) => i >= 0), isTrue);
+        }
+        for (final IngredientToken t in c.ingredientTokens) {
+          expect(t.allSourceIndices, isNotEmpty);
+        }
+      });
+    });
+  });
 }
 
 /// Property tests added by Milestone 3 — PT-05, PT-13, PT-14, PT-20.
