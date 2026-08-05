@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# CI-15 — every P0 requirement maps to at least one test.
+# CI-15 — every P0-v0.1 requirement maps to at least one test.
 #
 # Without this, 152 P0 requirements quietly become documentation rather than
 # specification, and nobody discovers which were never verified until something
@@ -12,7 +12,7 @@ set -uo pipefail
 REQ_DOC="docs/REQUIREMENTS.md"
 MISSING=0
 
-P0=$(grep -oE '^\| ((FR|NFR)-[A-Z]+[0-9]?-[0-9]+) \| .* \| P0 \|' "$REQ_DOC" \
+P0=$(grep -oE '^\| ((FR|NFR)-[A-Z]+[0-9]?-[0-9]+) \| .* \| P0-v0\.1 \|' "$REQ_DOC" \
      | grep -oE '(FR|NFR)-[A-Z]+[0-9]?-[0-9]+' | sort -u)
 TOTAL=$(echo "$P0" | grep -c . || true)
 
@@ -26,5 +26,5 @@ for r in $P0; do
   fi
 done
 
-echo "CI-15  P0 requirements: $TOTAL | uncovered: $MISSING"
+echo "CI-15  P0-v0.1 requirements: $TOTAL | uncovered: $MISSING"
 [ "$MISSING" -eq 0 ] || { echo "CI-15 FAILED"; exit 1; }
