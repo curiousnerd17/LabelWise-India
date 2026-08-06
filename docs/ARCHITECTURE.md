@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Document** | `docs/ARCHITECTURE.md` |
-| **Version** | 1.2 |
+| **Version** | 1.3 |
 | **Status** | **Approved** |
 | **Phase** | Phase 1: Architecture & Planning |
 | **Author** | Chief Software Architect |
@@ -11,6 +11,8 @@
 | **Parents** | `PROJECT_VISION.md` v1.1, `REQUIREMENTS.md` v1.1 |
 | **Successor** | `DATA_MODEL.md` |
 | **Decision log** | [`docs/adr/`](adr/README.md) — 20 accepted records |
+
+**Changes in v1.3** — §6.1 only. S8's output was `ParsedLabel`, but that type is unconstructible by the parser: `ParsedLabel.servingInfo.reconciliation` is a **Layer 1** output (`DATA_MODEL.md` §5.3, §6.2) and Layer 1 consumes `ParsedLabel`, closing a cycle; and `ParsedLabel.ingredients[].identification` needs the additive engine that `ROADMAP.md` §4.3 item 4.4 schedules for Phase 4. S8's *responsibility* column was always the narrower and correct statement — combine the signals into a classification per field — so the output type now matches it. `ParsedLabel` assembly becomes a later step, after ingredient identification, serving resolution and parser completion. Both `DATA_MODEL.md` fields become optional in v1.6; nothing is removed.
 
 **Changes in v1.2** — §6.1 only. S5 is required to "assign basis from column headers", and its only input is `Candidates`; the S4 row did not carry the header text, so the requirement was unsatisfiable as written. A column index alone says which band a value sits in, never what that band means. The S4 contract therefore carries each band's header text. Recorded because the same omission was made once already and only surfaced when the next stage was built.
 
@@ -336,7 +338,7 @@ The core of the system (`PROJECT_VISION.md` §2.3). Structured as a sequence of 
 | S5 | **Field resolution** | `Candidates` → `ResolvedFields` | Map candidate labels to canonical nutrients via the synonym table **held in the rule pack**. Assign basis from column headers. |
 | S6 | **Unit normalisation** | `ResolvedFields` → `TypedFields` | Canonical units; kJ→kcal with the original retained; every conversion recorded. |
 | S7 | **Invariant evaluation** | `TypedFields` → `ValidatedFields` | Evaluate INV-01…10; record pass, fail, or inapplicable. |
-| S8 | **Confidence assignment** | `ValidatedFields` → `ParsedLabel` | Combine S1/S2/S3 signals into a classification per field (§7). |
+| S8 | **Confidence assignment** | `ValidatedFields` → `ScoredFields` | Combine S1/S2/S3 signals into a classification per field (§7). Assembling `ParsedLabel` is a later step — see the v1.3 note above. |
 
 ### 6.2 Properties every stage must hold
 

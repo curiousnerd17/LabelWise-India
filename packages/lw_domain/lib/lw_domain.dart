@@ -13,6 +13,9 @@
 library;
 
 export 'src/confidence/confidence.dart';
+export 'src/confidence/confidence_policy.dart';
+export 'src/confidence/confidence_signals.dart';
+export 'src/confidence/scan_confidence.dart';
 export 'src/invariants/invariant_id.dart';
 export 'src/invariants/invariant_result.dart';
 export 'src/invariants/tolerance.dart';
@@ -37,6 +40,7 @@ export 'src/parser/qualifier_lexicon.dart';
 export 'src/parser/recognition_result.dart';
 export 'src/parser/region_markers.dart';
 export 'src/parser/resolved_fields.dart';
+export 'src/parser/scored_fields.dart';
 export 'src/parser/stage.dart';
 export 'src/parser/stages/s1_normalisation.dart';
 export 'src/parser/stages/s2_layout.dart';
@@ -45,6 +49,7 @@ export 'src/parser/stages/s4_tokenisation.dart';
 export 'src/parser/stages/s5_field_resolution.dart';
 export 'src/parser/stages/s6_unit_normalisation.dart';
 export 'src/parser/stages/s7_invariant_evaluation.dart';
+export 'src/parser/stages/s8_confidence_assignment.dart';
 export 'src/parser/typed_fields.dart';
 export 'src/parser/unit_lexicon.dart';
 export 'src/parser/validated_fields.dart';

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Document** | `docs/DATA_MODEL.md` |
-| **Version** | 1.5 |
+| **Version** | 1.6 |
 | **Status** | **Approved** |
 | **Phase** | Phase 1: Architecture & Planning |
 | **Author** | Chief Software Architect |
@@ -12,6 +12,8 @@
 | **Decision log** | [`docs/adr/`](adr/README.md) |
 | **Successor** | `TEST_STRATEGY.md` |
 | **Resolves** | Q3 (invariant tolerances), Q4 (aggregate confidence), Q13 (region classification), **Q19 (qualified quantities)** |
+
+**Changes in v1.6.** Two fields of `ParsedLabel`'s transitive shape become optional, found while reviewing Milestone 8. `ParsedLabel` is the parser's published contract (§5.5), yet §5.3 required `ServingInfo.reconciliation` — explicitly a **Layer 1** output — and §5.4 required `Ingredient.identification`, which needs the additive engine `ROADMAP.md` schedules for Phase 4. The first closes a cycle: Layer 1 consumes the object one of its own outputs is required to complete. The second demands a capability that does not exist yet. Both are now optional, each with the reason recorded inline. **Additive only:** no field removed, no type altered, no existing optionality changed. `ARCHITECTURE.md` v1.3 correspondingly retargets S8's output to `ScoredFields`.
 
 **Changes in v1.5.** §4.3 — `InvariantResult` gains an optional `basis`. A gap found while building Milestone 7: an Indian panel declares the same nutrients on two bases, so `saturatedFat ≤ totalFat` is a *distinct* check per-100 g and per-serve. Evaluating both produced two results carrying `INV-02` with nothing to separate them, which would have let a per-serve failure cap a correctly-read per-100 g field under FR-CNF-05, and would have left FR-EXP-09 with a derivation the user could not check against the packet. Additive only: one optional field, no existing field altered or removed.
 
@@ -418,7 +420,7 @@ All three bases are always present as `FieldState` values — typically one `Ext
 | `declaredServingSize` | `FieldState` | The manufacturer's chosen serve |
 | `servingsPerPack` | `FieldState` | Often "about N" |
 | `netQuantity` | `FieldState` | Total pack contents |
-| `reconciliation` | `ServingReconciliation` | Layer 1 output — see §6.2 |
+| `reconciliation` | `ServingReconciliation?` | *Optional justified:* a **Layer 1** output (§6.2), and Layer 1 consumes the `ParsedLabel` this sits inside. Null from the parser; populated by Layer 1. Requiring it would make `ParsedLabel` unconstructible by its own producer. |
 
 These three are **critical fields**. Serving-size manipulation is the primary legal deception on Indian packaging (`PROJECT_VISION.md` §2.1), so their extraction matters as much as any nutrient.
 
@@ -430,7 +432,7 @@ These three are **critical fields**. Serving-size manipulation is the primary le
 |---|---|---|
 | `position` | integer | 1-based; declaration order is legally meaningful (descending by weight) |
 | `rawText` | text | As recognised, before interpretation |
-| `identification` | `IngredientIdentification` | Union, below |
+| `identification` | `IngredientIdentification?` | *Optional justified:* additive identification is **Layer 1** work, scheduled by `ROADMAP.md` §4.3 item 4.4. Null until that engine exists. Distinct from the `Unidentified` variant, which records that identification was *attempted and failed* — null records that it has not yet been attempted, and conflating the two would let an unbuilt feature masquerade as a resolved absence (FR-ERR-03). |
 | `subIngredients` | `[Ingredient]` | Possibly empty; preserves nesting (FR-PAR-12) |
 | `provenance` | `Provenance` | |
 
