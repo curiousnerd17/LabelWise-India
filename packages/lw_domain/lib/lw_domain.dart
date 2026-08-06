@@ -12,6 +12,7 @@
 /// iteration speed (NFR-MNT-01, NFR-TST-02, E1).
 library;
 
+export 'src/analysis/serving_reconciliation.dart';
 export 'src/confidence/confidence.dart';
 export 'src/confidence/confidence_policy.dart';
 export 'src/confidence/confidence_signals.dart';
@@ -21,15 +22,19 @@ export 'src/invariants/invariant_result.dart';
 export 'src/invariants/tolerance.dart';
 export 'src/label/approximation_deltas.dart';
 export 'src/label/basis.dart';
+export 'src/label/category_id.dart';
 export 'src/label/dimension.dart';
 export 'src/label/field_state.dart';
+export 'src/label/ingredient.dart';
 export 'src/label/interval.dart';
 export 'src/label/nutrient_id.dart';
+export 'src/label/parsed_label.dart';
 export 'src/label/qualifier.dart';
 export 'src/label/quantity.dart';
 export 'src/label/serving_facts.dart';
 export 'src/label/trilean.dart';
 export 'src/label/unit.dart';
+export 'src/parser/assemble_parsed_label.dart';
 export 'src/parser/basis_markers.dart';
 export 'src/parser/candidates.dart';
 export 'src/parser/classified_regions.dart';
