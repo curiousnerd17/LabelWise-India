@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Document** | `docs/DATA_MODEL.md` |
-| **Version** | 1.4 |
+| **Version** | 1.5 |
 | **Status** | **Approved** |
 | **Phase** | Phase 1: Architecture & Planning |
 | **Author** | Chief Software Architect |
@@ -12,6 +12,8 @@
 | **Decision log** | [`docs/adr/`](adr/README.md) |
 | **Successor** | `TEST_STRATEGY.md` |
 | **Resolves** | Q3 (invariant tolerances), Q4 (aggregate confidence), Q13 (region classification), **Q19 (qualified quantities)** |
+
+**Changes in v1.5.** §4.3 — `InvariantResult` gains an optional `basis`. A gap found while building Milestone 7: an Indian panel declares the same nutrients on two bases, so `saturatedFat ≤ totalFat` is a *distinct* check per-100 g and per-serve. Evaluating both produced two results carrying `INV-02` with nothing to separate them, which would have let a per-serve failure cap a correctly-read per-100 g field under FR-CNF-05, and would have left FR-EXP-09 with a derivation the user could not check against the packet. Additive only: one optional field, no existing field altered or removed.
 
 **Changes in v1.4.** §3.1 — `parseStrength` becomes optional, matching `parseRuleId`. A verified inconsistency found during Milestone 3: a `USER_SUPPLIED` value has no parse rule *and* no parse strength, but only the former was marked optional. Minimum change; no other field altered, no new type, no fourth `ParseStrength` value.
 
@@ -303,8 +305,11 @@ Per ADR-0010, assignment weights S3 first, S2 second, S1 as refinement. The assi
 | `invariantId` | `INV-01 … INV-10` |
 | `outcome` | `PASSED \| FAILED \| INDETERMINATE \| INAPPLICABLE` |
 | `participatingFields` | `[NutrientId \| ServingField]` |
+| `basis` | `Basis?` — *optional justified:* null for invariants that are not basis-scoped (INV-09, INV-10 concern serving arithmetic, which no basis qualifies) |
 | `observedDeviation` | `Quantity?` — *optional justified:* meaningless for `INAPPLICABLE` |
 | `toleranceApplied` | `Tolerance?` — *optional justified:* same |
+
+A panel declaring both per-100 g and per-serve columns produces **one result per invariant per basis**. `basis` is what separates them, and what lets FR-CNF-05 cap only the fields that actually participated in the failure.
 
 `INAPPLICABLE` is a first-class outcome, not a silent skip: "we could not check this" is different from "this checked out", and FR-CNF-04 requires the distinction.
 

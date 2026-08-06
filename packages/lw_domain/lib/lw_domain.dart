@@ -13,6 +13,9 @@
 library;
 
 export 'src/confidence/confidence.dart';
+export 'src/invariants/invariant_id.dart';
+export 'src/invariants/invariant_result.dart';
+export 'src/invariants/tolerance.dart';
 export 'src/label/approximation_deltas.dart';
 export 'src/label/basis.dart';
 export 'src/label/dimension.dart';
@@ -21,6 +24,7 @@ export 'src/label/interval.dart';
 export 'src/label/nutrient_id.dart';
 export 'src/label/qualifier.dart';
 export 'src/label/quantity.dart';
+export 'src/label/serving_facts.dart';
 export 'src/label/trilean.dart';
 export 'src/label/unit.dart';
 export 'src/parser/basis_markers.dart';
@@ -40,8 +44,10 @@ export 'src/parser/stages/s3_region_classification.dart';
 export 'src/parser/stages/s4_tokenisation.dart';
 export 'src/parser/stages/s5_field_resolution.dart';
 export 'src/parser/stages/s6_unit_normalisation.dart';
+export 'src/parser/stages/s7_invariant_evaluation.dart';
 export 'src/parser/typed_fields.dart';
 export 'src/parser/unit_lexicon.dart';
+export 'src/parser/validated_fields.dart';
 export 'src/provenance/field_origin.dart';
 export 'src/provenance/parse_strength.dart';
 export 'src/provenance/pipeline_stage.dart';
