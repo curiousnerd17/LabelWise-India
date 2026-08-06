@@ -324,6 +324,59 @@ void main() {
     });
   });
 
+  group('S4 — column headings cross the boundary (ARCHITECTURE 6.1 v1.2)', () {
+    test('FR-PAR-04 each band of the first panel line becomes a heading', () {
+      // Without this, S5 sees only a band index and can never assign a basis.
+      final Candidates c = run(regionsOf(
+        nutrition: <Object>[
+          <String>['Nutrient', 'Per 100 g'],
+          <String>['Protein', '8 g'],
+        ],
+        withColumns: true,
+      ));
+      expect(c.columnHeaders, hasLength(2));
+      expect(c.headerFor(0)!.text, 'Nutrient');
+      expect(c.headerFor(1)!.text, 'Per 100 g');
+    });
+
+    test('FR-PAR-04 a single-column panel heading is still carried', () {
+      // The common Indian layout: "Nutritional Information per 100 g" as one
+      // heading line above a single column of values.
+      final Candidates c = run(regionsOf(
+        nutrition: <Object>['Nutritional Information per 100 g', 'Protein 8 g'],
+        withColumns: true,
+      ));
+      expect(c.headerFor(0)!.text, 'Nutritional Information per 100 g');
+    });
+
+    test('FR-PAR-05 no bands means no headings, never invented ones', () {
+      final Candidates c = run(regionsOf(
+        nutrition: <Object>['Protein 8 g'],
+      ));
+      expect(c.columnHeaders, isEmpty);
+      expect(c.headerFor(0), isNull);
+    });
+
+    test('FR-PAR-13 a heading traces to the elements that formed it', () {
+      final Candidates c = run(regionsOf(
+        nutrition: <Object>[
+          <String>['Nutrient', 'Per Serve'],
+          <String>['Protein', '8 g'],
+        ],
+        withColumns: true,
+      ));
+      expect(c.headerFor(0)!.sourceIndices, <int>[0]);
+      expect(c.headerFor(1)!.sourceIndices, <int>[1]);
+    });
+
+    test('FR-PAR-14 an ingredients-only label carries no headings', () {
+      final Candidates c = run(regionsOf(
+        ingredients: <Object>['Ingredients: Salt'],
+      ));
+      expect(c.columnHeaders, isEmpty);
+    });
+  });
+
   group('S4 — tolerance and traceability (AR5, M5 owner requirement)', () {
     test('AR5 a misclassified region still produces usable output', () {
       // S3 classifies on structural cues and will sometimes be wrong. S4 must

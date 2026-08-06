@@ -3,6 +3,85 @@ import 'package:lw_domain/src/provenance/parse_strength.dart';
 import 'package:lw_domain/src/provenance/pipeline_stage.dart';
 import 'package:lw_domain/src/provenance/region_ref.dart';
 
+/// What one column band of the nutrition panel is headed by.
+///
+/// S4 carries this because S5 is required to "assign basis from column
+/// headers" (`ARCHITECTURE.md` §6.1) and its only input is `Candidates`. A
+/// column *index* says which band a value sits in; only the header says what
+/// that band means, and `Per 100 g` against `Per Serve` is a factor of three
+/// or more — the highest-harm error this parser can make.
+///
+/// S4 does not interpret the wording. Reading `Per 100 g` as a basis is S5's
+/// job, because basis vocabulary is nutrition-specific and S1–S4 stay domain
+/// independent (`ARCHITECTURE.md` §11).
+final class ColumnHeader {
+  /// Records a band's heading.
+  ///
+  /// Throws [ArgumentError] when [columnIndex] is negative, when [text] is
+  /// blank, or when [sourceIndices] is empty — a heading that traces to no
+  /// recognised element could not have been read off the label.
+  ColumnHeader({
+    required this.columnIndex,
+    required this.text,
+    required this.region,
+    required List<int> sourceIndices,
+  }) : sourceIndices = List<int>.unmodifiable(sourceIndices) {
+    if (columnIndex < 0) {
+      throw ArgumentError.value(
+        columnIndex,
+        'columnIndex',
+        'Column bands are indexed from zero.',
+      );
+    }
+    if (text.trim().isEmpty) {
+      throw ArgumentError.value(
+        text,
+        'text',
+        'A heading without text names nothing.',
+      );
+    }
+    if (sourceIndices.isEmpty) {
+      throw ArgumentError.value(
+        sourceIndices,
+        'sourceIndices',
+        'A heading must trace to at least one recognised element.',
+      );
+    }
+  }
+
+  /// The S2 band this heading sits above.
+  final int columnIndex;
+
+  /// The heading as printed, before any interpretation.
+  final String text;
+
+  /// Where the heading sits on the label.
+  final RegionRef region;
+
+  /// Source indices of the elements that formed it, ascending.
+  final List<int> sourceIndices;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ColumnHeader &&
+          columnIndex == other.columnIndex &&
+          text == other.text &&
+          region == other.region &&
+          _sameInts(sourceIndices, other.sourceIndices);
+
+  @override
+  int get hashCode => Object.hash(
+        columnIndex,
+        text,
+        region,
+        Object.hashAll(sourceIndices),
+      );
+
+  @override
+  String toString() => 'ColumnHeader($columnIndex, "$text")';
+}
+
 /// One `(label, value, unit?, qualifier)` quadruple read off the panel.
 ///
 /// **Text, not `Quantity`.** A quantity requires a unit (MI-03), and unit
@@ -230,11 +309,13 @@ final class Candidates {
   Candidates({
     List<NutritionCandidate> nutritionCandidates = const <NutritionCandidate>[],
     List<IngredientToken> ingredientTokens = const <IngredientToken>[],
+    List<ColumnHeader> columnHeaders = const <ColumnHeader>[],
     this.nutritionPanelPresent = false,
     this.ingredientListPresent = false,
   })  : nutritionCandidates =
             List<NutritionCandidate>.unmodifiable(nutritionCandidates),
-        ingredientTokens = List<IngredientToken>.unmodifiable(ingredientTokens);
+        ingredientTokens = List<IngredientToken>.unmodifiable(ingredientTokens),
+        columnHeaders = List<ColumnHeader>.unmodifiable(columnHeaders);
 
   /// Candidate quadruples from the nutrition panel, in reading order.
   final List<NutritionCandidate> nutritionCandidates;
@@ -253,6 +334,26 @@ final class Candidates {
   /// Whether S3 identified an ingredient list at all. See
   /// [nutritionPanelPresent].
   final bool ingredientListPresent;
+
+  /// What each column band of the nutrition panel is headed by.
+  ///
+  /// Empty when the panel is single-column with no heading, or when S2 found
+  /// no bands. S5 then has no evidence of a basis and must report the field
+  /// unresolved rather than assume one (FR-PAR-05).
+  final List<ColumnHeader> columnHeaders;
+
+  /// The heading above band [columnIndex], or null when there is none.
+  ///
+  /// Null is the honest answer, not a defect: an absent heading means S5 must
+  /// decline to assign a basis rather than guess one.
+  ColumnHeader? headerFor(int columnIndex) {
+    for (final ColumnHeader h in columnHeaders) {
+      if (h.columnIndex == columnIndex) {
+        return h;
+      }
+    }
+    return null;
+  }
 
   /// The stage that produced this, recorded for diagnostics.
   PipelineStage get producedByStage => PipelineStage.tokenisation;

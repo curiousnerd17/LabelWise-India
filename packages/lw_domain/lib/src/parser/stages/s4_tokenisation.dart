@@ -62,6 +62,8 @@ StageResult<Candidates> tokenise(
           : _readPanel(panel, regions, lexicon),
       ingredientTokens:
           list == null ? const <IngredientToken>[] : _readIngredients(list),
+      columnHeaders:
+          panel == null ? const <ColumnHeader>[] : _readHeaders(panel, regions),
       nutritionPanelPresent: regions.hasNutritionPanel,
       ingredientListPresent: regions.hasIngredientList,
     ),
@@ -88,6 +90,77 @@ List<NutritionCandidate> _readPanel(
     }
   }
   return out;
+}
+
+/// The heading above each column band, taken from the panel's **first line**.
+///
+/// S5 must "assign basis from column headers" (`ARCHITECTURE.md` §6.1) and its
+/// only input is the object this stage returns, so the wording has to cross
+/// this boundary. S4 carries it verbatim and interprets nothing: reading
+/// `Per 100 g` as a basis is nutrition vocabulary, and S1–S4 do not hold any.
+///
+/// Deliberately not clever. There is no attempt to detect whether the first
+/// line really is a header row. When it is not, S5's basis markers simply fail
+/// to match and the field resolves as basis-undetermined — honest degradation,
+/// rather than a heuristic tuned against fixtures no corpus has validated.
+List<ColumnHeader> _readHeaders(
+  ClassifiedRegion panel,
+  ClassifiedRegions regions,
+) {
+  final LayoutLine first = panel.lines.first;
+  final Map<int, List<NormalisedElement>> byBand =
+      <int, List<NormalisedElement>>{};
+  for (final NormalisedElement e in first.elements) {
+    final int? band = regions.columnIndexOf(e.sourceIndex);
+    if (band == null) {
+      continue;
+    }
+    byBand.putIfAbsent(band, () => <NormalisedElement>[]).add(e);
+  }
+
+  // Sorted, so the output cannot depend on map iteration order (FR-PAR-02).
+  final List<int> bands = byBand.keys.toList()..sort();
+  final List<ColumnHeader> out = <ColumnHeader>[];
+  for (final int band in bands) {
+    final List<NormalisedElement> group = byBand[band]!;
+    final String text =
+        group.map((NormalisedElement e) => e.text).join(' ').trim();
+    if (text.isEmpty) {
+      continue;
+    }
+    out.add(
+      ColumnHeader(
+        columnIndex: band,
+        text: text,
+        region: _boundsOfElements(group),
+        sourceIndices:
+            group.map((NormalisedElement e) => e.sourceIndex).toList()..sort(),
+      ),
+    );
+  }
+  return out;
+}
+
+RegionRef _boundsOfElements(List<NormalisedElement> elements) {
+  int left = elements.first.region.left;
+  int top = elements.first.region.top;
+  int right = elements.first.region.right;
+  int bottom = elements.first.region.bottom;
+  for (final NormalisedElement e in elements) {
+    if (e.region.left < left) {
+      left = e.region.left;
+    }
+    if (e.region.top < top) {
+      top = e.region.top;
+    }
+    if (e.region.right > right) {
+      right = e.region.right;
+    }
+    if (e.region.bottom > bottom) {
+      bottom = e.region.bottom;
+    }
+  }
+  return RegionRef(left: left, top: top, right: right, bottom: bottom);
 }
 
 NutritionCandidate? _readLine(

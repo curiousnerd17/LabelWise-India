@@ -310,7 +310,79 @@ void main() {
     });
   });
 
+  ColumnHeader header(
+    int index,
+    String text, {
+    List<int> at = const <int>[0],
+  }) =>
+      ColumnHeader(
+        columnIndex: index,
+        text: text,
+        region: box(0, 0, 100, 60),
+        sourceIndices: at,
+      );
+
+  group('ColumnHeader — what a column band means (ARCHITECTURE 6.1 v1.2)', () {
+    test('FR-PAR-04 records the band, its wording and its provenance', () {
+      final ColumnHeader h = header(1, 'Per Serve', at: const <int>[3, 4]);
+      expect(h.columnIndex, 1);
+      expect(h.text, 'Per Serve');
+      expect(h.sourceIndices, <int>[3, 4]);
+      expect(h.region, box(0, 0, 100, 60));
+    });
+
+    test('FR-PAR-17 a negative band, blank text or no provenance is rejected',
+        () {
+      expect(() => header(-1, 'Per Serve'), throwsArgumentError);
+      expect(() => header(0, '   '), throwsArgumentError);
+      expect(
+        () => header(0, 'Per Serve', at: const <int>[]),
+        throwsArgumentError,
+      );
+    });
+
+    test('P4 compares by value, not identity', () {
+      final ColumnHeader a = header(0, 'Per 100 g');
+      final ColumnHeader b = header(0, 'Per 100 g');
+      expect(identical(a, b), isFalse, reason: 'must be distinct instances');
+      expect(a, b);
+      expect(a.hashCode, b.hashCode);
+      expect(a, isNot(header(1, 'Per 100 g')));
+      expect(a, isNot(header(0, 'Per Serve')));
+    });
+
+    test('FR-PAR-13 toString names the band and its wording', () {
+      expect(header(1, 'Per Serve').toString(), 'ColumnHeader(1, "Per Serve")');
+    });
+  });
+
   group('Candidates — the S4 output', () {
+    test('FR-PAR-04 headers default to empty, so older callers are intact', () {
+      // Additive by construction: every Candidates built before this field
+      // existed keeps its exact previous behaviour.
+      expect(Candidates().columnHeaders, isEmpty);
+      expect(Candidates().headerFor(0), isNull);
+    });
+
+    test('FR-PAR-04 a header is reachable by its band index', () {
+      final Candidates c = Candidates(
+        columnHeaders: <ColumnHeader>[
+          header(0, 'Nutrient'),
+          header(1, 'Per 100 g'),
+        ],
+      );
+      expect(c.headerFor(1)!.text, 'Per 100 g');
+      expect(c.headerFor(0)!.text, 'Nutrient');
+      expect(c.headerFor(2), isNull, reason: 'an absent band is not guessed');
+    });
+
+    test('FR-KB-01 the header list is unmodifiable once built', () {
+      final Candidates c = Candidates(
+        columnHeaders: <ColumnHeader>[header(0, 'Per 100 g')],
+      );
+      expect(() => c.columnHeaders.add(header(1, 'x')), throwsUnsupportedError);
+    });
+
     test('FR-PAR-13 the output records the stage that produced it', () {
       expect(Candidates().producedByStage, PipelineStage.tokenisation);
     });

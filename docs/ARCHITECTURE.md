@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Document** | `docs/ARCHITECTURE.md` |
-| **Version** | 1.1 |
+| **Version** | 1.2 |
 | **Status** | **Approved** |
 | **Phase** | Phase 1: Architecture & Planning |
 | **Author** | Chief Software Architect |
@@ -11,6 +11,8 @@
 | **Parents** | `PROJECT_VISION.md` v1.1, `REQUIREMENTS.md` v1.1 |
 | **Successor** | `DATA_MODEL.md` |
 | **Decision log** | [`docs/adr/`](adr/README.md) — 20 accepted records |
+
+**Changes in v1.2** — §6.1 only. S5 is required to "assign basis from column headers", and its only input is `Candidates`; the S4 row did not carry the header text, so the requirement was unsatisfiable as written. A column index alone says which band a value sits in, never what that band means. The S4 contract therefore carries each band's header text. Recorded because the same omission was made once already and only surfaced when the next stage was built.
 
 **Changes in v1.1** — §6.1 only. The S4 stage contract was written before ADR-0027 was accepted and described a `(label, value, unit)` triple. FR-PAR-18 requires the parser to extract the qualifier, and S4 is the only stage that still sees the raw text in which `<` or `About` is printed. The contract is therefore a `(label, value, unit, qualifier)` quadruple. Recorded here rather than left implicit, because a stage contract that omits a P0 requirement will be implemented without it.
 
@@ -330,7 +332,7 @@ The core of the system (`PROJECT_VISION.md` §2.3). Structured as a sequence of 
 | S1 | **Normalisation** | `RecognitionResult` → `NormalisedText` | Unicode normalisation, whitespace collapse, catalogued character-confusion handling (`O`↔`0`, `l`↔`1`, `S`↔`5`, `B`↔`8`). Every substitution recorded. |
 | S2 | **Layout reconstruction** | `NormalisedText` → `LabelLayout` | Geometry only: cluster elements into lines, lines into columns and table structure. No semantics. |
 | S3 | **Region classification** | `LabelLayout` → `ClassifiedRegions` | Identify nutrition panel, ingredient list, other. |
-| S4 | **Tokenisation** | `ClassifiedRegions` → `Candidates` | Nutrition: candidate (label, value, unit, qualifier) quadruples with column association. Ingredients: delimiter split respecting parentheses. |
+| S4 | **Tokenisation** | `ClassifiedRegions` → `Candidates` | Nutrition: candidate (label, value, unit, qualifier) quadruples with column association, **plus the header text of each column band**. Ingredients: delimiter split respecting parentheses. |
 | S5 | **Field resolution** | `Candidates` → `ResolvedFields` | Map candidate labels to canonical nutrients via the synonym table **held in the rule pack**. Assign basis from column headers. |
 | S6 | **Unit normalisation** | `ResolvedFields` → `TypedFields` | Canonical units; kJ→kcal with the original retained; every conversion recorded. |
 | S7 | **Invariant evaluation** | `TypedFields` → `ValidatedFields` | Evaluate INV-01…10; record pass, fail, or inapplicable. |

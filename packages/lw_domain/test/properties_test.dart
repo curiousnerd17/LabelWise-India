@@ -242,6 +242,100 @@ void main() {
   milestone3Properties();
   milestone4Properties();
   milestone5Properties();
+  milestone6Properties();
+}
+
+/// Property tests added by Milestone 6 — PT-06 and PT-16 extended to S5 and
+/// S6, plus MI-03 and MI-16 over the typed output.
+void milestone6Properties() {
+  /// Runs S5 → S6 over generated candidates, returning null when either
+  /// declines. Declining is a valid outcome, so null is not a failure.
+  TypedFields? typing(Gen gen) {
+    final SynonymTable table = gen.synonymTable();
+    final StageResult<ResolvedFields> s5 =
+        resolveFields(gen.candidates(), synonyms: table);
+    if (!s5.isSuccess) {
+      return null;
+    }
+    final StageResult<TypedFields> s6 =
+        normaliseUnits(s5.valueOrNull!, synonyms: table);
+    return s6.isSuccess ? s6.valueOrNull : null;
+  }
+
+  group('PT-16 S5 and S6 are total (FR-PAR-17, ARCHITECTURE 6.2)', () {
+    test('no generated candidate set makes either stage throw', () {
+      forAll('S5/S6 totality', (Gen gen) {
+        expect(() => typing(gen), returnsNormally);
+      });
+    });
+  });
+
+  group('PT-06 S5 and S6 are deterministic (FR-PAR-02)', () {
+    test('the same candidates resolve and type identically twice', () {
+      forAll('S5/S6 determinism', (Gen gen) {
+        final TypedFields? first = typing(Gen(gen.seed));
+        final TypedFields? second = typing(Gen(gen.seed));
+        if (first == null || second == null) {
+          expect(first == null, second == null);
+          return;
+        }
+        expect(first.fields, second.fields);
+        expect(first.unresolved, second.unresolved);
+        expect(first.sourceIndices, second.sourceIndices);
+      });
+    });
+  });
+
+  group('MI-03 a typed value is never partial', () {
+    test('every typed field carries a unit, a basis and a provenance chain',
+        () {
+      // MI-03: every Quantity has a Unit and every nutrient value has a
+      // Basis. FR-PAR-05 makes the alternative unrepresentable — a field that
+      // could not determine either is unresolved, not partially typed.
+      forAll('typed completeness', (Gen gen) {
+        final TypedFields? t = typing(gen);
+        if (t == null) {
+          return;
+        }
+        for (final TypedField f in t.fields) {
+          expect(Basis.values.contains(f.basis), isTrue);
+          expect(Unit.values.contains(f.quantity.unit), isTrue);
+          expect(f.sourceIndices, isNotEmpty);
+        }
+        for (final UnresolvedCandidate u in t.unresolved) {
+          expect(u.sourceIndices, isNotEmpty,
+              reason: 'a failure must stay as traceable as a success');
+        }
+      });
+    });
+  });
+
+  group('MI-16 no stage coerces a qualified quantity to a point value', () {
+    test('the qualifier a candidate carried survives S5 and S6', () {
+      // Including through the kilojoule conversion, which scales the value.
+      forAll('qualifier survival', (Gen gen) {
+        final Candidates input = gen.candidates(minCandidates: 1);
+        final SynonymTable table = gen.synonymTable();
+        final StageResult<ResolvedFields> s5 =
+            resolveFields(input, synonyms: table);
+        if (!s5.isSuccess) {
+          return;
+        }
+        final StageResult<TypedFields> s6 =
+            normaliseUnits(s5.valueOrNull!, synonyms: table);
+        if (!s6.isSuccess) {
+          return;
+        }
+        for (final TypedField f in s6.valueOrNull!.fields) {
+          final Quantity? original = f.declaredAs;
+          if (original != null) {
+            expect(f.quantity.qualifier, original.qualifier,
+                reason: 'conversion must not change the bound direction');
+          }
+        }
+      });
+    });
+  });
 }
 
 /// Property tests added by Milestone 5 — PT-06 and PT-16 extended to S3 and

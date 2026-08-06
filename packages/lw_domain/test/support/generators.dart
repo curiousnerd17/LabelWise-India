@@ -158,6 +158,82 @@ class Gen {
   Version version() =>
       Version(intInRange(0, 5), intInRange(0, 20), intInRange(0, 20));
 
+  /// A synonym table covering the labels [candidates] generates.
+  SynonymTable synonymTable() => SynonymTable(<SynonymEntry>[
+        SynonymEntry(
+          nutrient: NutrientId.energy,
+          patterns: const <SynonymPattern>[
+            SynonymPattern(text: 'Energy', strength: ParseStrength.exact),
+          ],
+          expectedUnits: const <Unit>[Unit.kilocalorie, Unit.kilojoule],
+        ),
+        SynonymEntry(
+          nutrient: NutrientId.protein,
+          patterns: const <SynonymPattern>[
+            SynonymPattern(text: 'Protein', strength: ParseStrength.exact),
+          ],
+          expectedUnits: const <Unit>[Unit.gram],
+        ),
+        SynonymEntry(
+          nutrient: NutrientId.transFat,
+          patterns: const <SynonymPattern>[
+            SynonymPattern(text: 'Trans Fat', strength: ParseStrength.exact),
+          ],
+          expectedUnits: const <Unit>[Unit.gram],
+        ),
+      ]);
+
+  /// S4 output for the S5 and S6 properties.
+  ///
+  /// Mixes resolvable and unresolvable labels, readable and unreadable units,
+  /// present and absent column bands, so the unresolved paths are exercised as
+  /// often as the successful one.
+  Candidates candidates({int minCandidates = 0}) {
+    const List<String> labels = <String>[
+      'Energy',
+      'Protein',
+      'Trans Fat',
+      'Riboflavin',
+      'Per',
+    ];
+    const List<String> values = <String>['8', '0.5', '400', '1,000', 'abc'];
+    const List<String?> units = <String?>['g', 'gm', 'kJ', 'kcal', null, 'zzz'];
+    const List<String> headers = <String>[
+      'Per 100 g',
+      'Per Serve',
+      'Per 100 ml',
+      'Amount',
+    ];
+
+    final int count = intInRange(minCandidates, 5);
+    final RegionRef where = regionRef();
+    return Candidates(
+      nutritionCandidates: <NutritionCandidate>[
+        for (int i = 0; i < count; i++)
+          NutritionCandidate(
+            labelText: labels[_random.nextInt(labels.length)],
+            valueText: values[_random.nextInt(values.length)],
+            unitText: units[_random.nextInt(units.length)],
+            qualifier: qualifier(),
+            columnIndex: _random.nextBool() ? 0 : null,
+            region: where,
+            sourceIndices: <int>[i],
+            parseStrength: parseStrength(),
+          ),
+      ],
+      columnHeaders: <ColumnHeader>[
+        if (_random.nextBool())
+          ColumnHeader(
+            columnIndex: 0,
+            text: headers[_random.nextInt(headers.length)],
+            region: where,
+            sourceIndices: const <int>[0],
+          ),
+      ],
+      nutritionPanelPresent: true,
+    );
+  }
+
   /// A marker table keyed to the vocabulary [recognitionElement] produces.
   ///
   /// The food-label defaults would almost never match generated text, so S3
