@@ -66,6 +66,34 @@ jobs:
           echo "Domain coverage: ${PCT}%"
           awk -v p="$PCT" 'BEGIN{exit !(p+0 >= 90)}' || { echo "CI-05 FAILED: below 90%"; exit 1; }
 
+  rulepack-package:
+    name: Rule pack runtime tests and coverage (CI-18)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with: { sdk: stable }
+
+      # The package that verifies the pack had no CI job of its own, so it was
+      # itself unverified. Same gates as lw_domain, for the same reasons.
+      - name: Rule pack unit tests
+        working-directory: packages/lw_rulepack
+        run: |
+          dart pub get
+          dart format --set-exit-if-changed .
+          dart analyze --fatal-infos
+          dart test --coverage=coverage
+
+      - name: Coverage gate (CI-18, >= 90%)
+        working-directory: packages/lw_rulepack
+        run: |
+          dart pub global activate coverage
+          dart pub global run coverage:format_coverage \
+            --lcov --in=coverage --out=coverage/lcov.info --report-on=lib
+          PCT=$(awk -F: '/^LF:/{f+=$2} /^LH:/{h+=$2} END{if(f==0){print 0}else{printf "%.1f", h*100/f}}' coverage/lcov.info)
+          echo "Rule pack coverage: ${PCT}%"
+          awk -v p="$PCT" 'BEGIN{exit !(p+0 >= 90)}' || { echo "CI-18 FAILED: below 90%"; exit 1; }
+
   requirements:
     name: P0 requirement coverage (CI-15)
     runs-on: ubuntu-latest

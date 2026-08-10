@@ -45,7 +45,22 @@ Development dependencies do not ship in the APK and carry no runtime or licence-
 
 ### Runtime
 
-*None registered yet.* Entries are added as Phase 2 proceeds.
+| Package | Version | Licence | Purpose | Layer | Exit path |
+|---|---|---|---|---|---|
+| `crypto` | ^3.0.0 | BSD-3-Clause | SHA-256 for rule pack integrity verification (FR-ERR-06, FR-KB-09) | `lw_rulepack` only | Swap the one call site in `integrity.dart` |
+
+#### `crypto` — full justification
+
+| Aspect | Assessment |
+|---|---|
+| **What it does** | SHA-256 over the pack's content files, per the normative algorithm in §7.2 of `DATA_MODEL.md`. Nothing else in the package is used |
+| **Why not ourselves** | We could — SHA-256 is ~140 lines of fully specified bit arithmetic. **Rejected deliberately.** A hand-rolled primitive that is subtly wrong still produces a plausible 64-hex digest and passes any test written against its own output. Cryptographic primitives are not where a solo project spends its novelty budget |
+| **Licence** | BSD-3-Clause — Apache-2.0 compatible (CON-11) |
+| **Maintenance** | Published by the Dart team under `dart.dev`; part of the core package ecosystem, released alongside the SDK. Not an abandonment risk |
+| **Layer** | `lw_rulepack`. **Not `lw_domain`**, which keeps its zero-dependency guarantee (CI-01, ADR-0007) untouched. `lw_rulepack` exists precisely so the domain never learns what JSON — or a digest — is |
+| **Size** | Pure Dart, no native code, no platform channels. Negligible against NFR-SIZ-01 |
+| **Network** | None. Compatible with ADR-0016 |
+| **Exit path** | One call site behind `RulePackIntegrity`. Replacing it is an afternoon, and the NIST test vectors in the suite would catch a bad substitution |
 
 ---
 

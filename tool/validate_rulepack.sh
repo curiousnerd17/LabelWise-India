@@ -82,5 +82,30 @@ else
   echo "CI-16 canonical serialisation OK"
 fi
 
-[ "$FAIL" -eq 0 ] && echo "CI-07/08/09 rule pack valid" || echo "CI-07/08/09 FAILED"
+# --- CI-17: integrity hash ----------------------------------------------------
+# The algorithm is normative in DATA_MODEL.md section 7.2. Before this check the
+# recorded hash described a wider file set than it covered and nothing noticed,
+# because no tool recomputed it. A checksum nobody can reproduce is not
+# integrity verification.
+python3 tool/compute_rulepack_hash.py --check rulepack || FAIL=1
+
+# --- CI-19: the bundled copy is the authored pack -----------------------------
+# app/assets/rulepack/ is what actually ships. It is a copy of rulepack/, and a
+# copy that nothing compares is a copy that silently goes stale — the app would
+# ship knowledge the repository does not contain, and every review would look at
+# the wrong file. Found during Milestone 10, when an edit to rulepack/ left the
+# bundled copy behind.
+if [ -d app/assets/rulepack ]; then
+  if diff -rq rulepack app/assets/rulepack >/dev/null 2>&1; then
+    echo "CI-19 bundled rule pack matches the authored pack"
+  else
+    echo "  CI-19 app/assets/rulepack differs from rulepack/:"
+    diff -rq rulepack app/assets/rulepack 2>&1 | sed 's/^/    /'
+    echo "    Run: rm -rf app/assets/rulepack && cp -r rulepack app/assets/rulepack"
+    FAIL=1
+  fi
+  python3 tool/compute_rulepack_hash.py --check app/assets/rulepack || FAIL=1
+fi
+
+[ "$FAIL" -eq 0 ] && echo "CI-07/08/09/16/17 rule pack valid" || echo "rule pack validation FAILED"
 exit $FAIL

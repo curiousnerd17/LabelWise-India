@@ -327,6 +327,39 @@ void main() {
       expect(r.involves(const NutrientSubject(NutrientId.protein)), isTrue);
     });
 
+    test('INV-08 the tolerance floor absorbs rounding on a small figure', () {
+      // 0.50 g/100 g over a 30 g serve is 0.15 g, which a manufacturer prints
+      // as "0.2 g". That is a rounding artefact, not a contradiction, and
+      // DATA_MODEL 4.4 pairs a floor with every relative band precisely to
+      // absorb it: 5% of 0.15 g is 0.0075 g, a width no label can express.
+      //
+      // This is the case that discriminates the default band. With INV-08's
+      // floor at zero the allowance falls back to one unit increment (0.01 g)
+      // and this reads as a failure.
+      final ValidatedFields v = run(
+        input(<TypedField>[
+          field(NutrientId.transFat, g(50)),
+          field(NutrientId.transFat, g(20), basis: Basis.perServe),
+        ]),
+        serving: facts,
+      );
+      expect(only(v, InvariantId.inv08).outcome, InvariantOutcome.passed);
+    });
+
+    test('INV-08 the floor does not absorb a genuine contradiction', () {
+      // The other half of the same guard. 0.50 g/100 g over a 30 g serve is
+      // 0.15 g; a declared 0.40 g is 0.25 g out, well past the 0.1 g floor.
+      // A floor wide enough to swallow this would disable the check.
+      final ValidatedFields v = run(
+        input(<TypedField>[
+          field(NutrientId.transFat, g(50)),
+          field(NutrientId.transFat, g(40), basis: Basis.perServe),
+        ]),
+        serving: facts,
+      );
+      expect(only(v, InvariantId.inv08).outcome, InvariantOutcome.failed);
+    });
+
     test('INV-09 a serve within the pack passes', () {
       final ValidatedFields v = run(input(<TypedField>[]), serving: facts);
       expect(only(v, InvariantId.inv09).outcome, InvariantOutcome.passed);

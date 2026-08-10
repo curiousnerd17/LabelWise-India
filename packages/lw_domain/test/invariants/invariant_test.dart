@@ -297,6 +297,57 @@ void main() {
           Tolerance.grace(2000000));
     });
 
+    test('DATA_MODEL 4.4 every relative band carries a floor', () {
+      // The gap that let the defaults drift from the rule pack: the graces
+      // above were pinned, the relative bands were not, so INV-08 shipped with
+      // floorBaseUnits 0 while rules/confidence.json specified 0.1 g. A
+      // relative band with no floor checks a small declared magnitude to an
+      // absurdly tight width — 5% of 0.15 g is 0.0075 g, which no label prints.
+      for (final InvariantId id in <InvariantId>[
+        InvariantId.inv07,
+        InvariantId.inv08,
+        InvariantId.inv10,
+      ]) {
+        final Tolerance band = ToleranceTable.defaults.forInvariant(id)!;
+        expect(band.kind, ToleranceKind.relative,
+            reason: '${id.code} is a relative band');
+        expect(band.floorBaseUnits, greaterThan(0),
+            reason: '${id.code} must carry a floor');
+      }
+    });
+
+    test('DATA_MODEL 4.4 the relative bands match rules/confidence.json', () {
+      // Pinned against the shipped pack, which is authoritative. 0.15 -> 150
+      // tenths of a percent; 200 kcal = 83 680 000 millijoules; 0.1 g =
+      // 100 000 micrograms; 0.5 servings = 50 hundredths.
+      expect(
+        ToleranceTable.defaults.forInvariant(InvariantId.inv07),
+        Tolerance.relative(percentTenths: 150, floorBaseUnits: 83680000),
+      );
+      expect(
+        ToleranceTable.defaults.forInvariant(InvariantId.inv08),
+        Tolerance.relative(percentTenths: 50, floorBaseUnits: 100000),
+      );
+      expect(
+        ToleranceTable.defaults.forInvariant(InvariantId.inv10),
+        Tolerance.relative(percentTenths: 100, floorBaseUnits: 50),
+      );
+    });
+
+    test('INV-08 the floor governs below a 2 g expected per-serve', () {
+      // Where the floor actually bites. 5% of the expected value exceeds 0.1 g
+      // only once the expected value passes 2 g; below that the floor is the
+      // wider of the two and the one that applies.
+      final Tolerance band =
+          ToleranceTable.defaults.forInvariant(InvariantId.inv08)!;
+      expect(band.allowanceFor(150000), 100000,
+          reason: '5% of 0.15 g is 0.0075 g, so the floor governs');
+      expect(band.allowanceFor(2000000), 100000,
+          reason: '2 g is the crossover: 5% is exactly the floor');
+      expect(band.allowanceFor(2400000), 120000,
+          reason: 'above 2 g the relative width governs');
+    });
+
     test('ADR-0013 a caller-supplied table replaces the default wholesale', () {
       // Q14 requires the calibrated bands to be recorded in the rule pack and
       // applied without a code change.

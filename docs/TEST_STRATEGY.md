@@ -477,6 +477,15 @@ Every corpus run appends to a committed report: date, commit, corpus version, ru
 | CI-14 | Analysis-only benchmark within budget | NFR-PRF-03 |
 | CI-15 | Every **P0-v0.1** requirement maps to ≥1 test; widens to include P0-v0.2 at Phase 7 | NFR-TST-05 |
 | CI-16 | No serialised `"qualifier": "EXACT"` in `rulepack/` or `corpus/` | MI-17, ADR-0027 |
+| CI-17 | Recomputed rule pack integrity hash matches `manifest.json` | FR-ERR-06, §7.2 of `DATA_MODEL.md` |
+| CI-18 | `lw_rulepack` tests pass; coverage ≥ 90% | NFR-TST-01, E2 |
+| CI-19 | `app/assets/rulepack/` is identical to `rulepack/` | FR-KB-08 |
+
+> **⚠ Architect's Note — CI-17 exists because its absence had already caused a defect.**
+>
+> The integrity hash shipped for months describing a file set it did not cover, and nothing noticed, because no tool ever recomputed it. A checksum nobody can reproduce is not integrity verification — it is a constant that happens to look like one.
+>
+> CI-18 closes the matching hole in the test gates: `lw_rulepack` had no CI job at all, so the package that verifies the pack was itself unverified.
 
 ### 10.2 Reported, not blocking
 

@@ -11,6 +11,11 @@ environment:
 dependencies:
   lw_domain:
     path: ../lw_domain
+  # Registered in docs/DEPENDENCY_REGISTER.md (CI-13). SHA-256 for rule pack
+  # integrity verification only. A hand-rolled primitive that is subtly wrong
+  # still produces a plausible digest and passes any test written against its
+  # own output, which is why this is not something we implement ourselves.
+  crypto: ^3.0.0
 
 dev_dependencies:
   lints: ^4.0.0

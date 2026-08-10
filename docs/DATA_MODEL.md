@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Document** | `docs/DATA_MODEL.md` |
-| **Version** | 1.6 |
+| **Version** | 1.7 |
 | **Status** | **Approved** |
 | **Phase** | Phase 1: Architecture & Planning |
 | **Author** | Chief Software Architect |
@@ -12,6 +12,13 @@
 | **Decision log** | [`docs/adr/`](adr/README.md) |
 | **Successor** | `TEST_STRATEGY.md` |
 | **Resolves** | Q3 (invariant tolerances), Q4 (aggregate confidence), Q13 (region classification), **Q19 (qualified quantities)** |
+
+**Changes in v1.7.** §7 only, found while reviewing Milestone 10. Four defects, all in the rule pack specification, none touching a type already implemented.
+
+1. **§7.2 — the integrity algorithm was never specified.** It existed only as prose in the pack's own `notes` field, describing "each non-manifest pack file"; the recorded hash covers a *narrower* set. Verified by recomputation: the note's recipe yields `a4adb395…`, the recorded value is `33177c6c…`, which is the eight content files with `schema/` and `LICENSE` excluded. The runtime's single mandated startup check (`ARCHITECTURE.md` §9.3, FR-ERR-06) was therefore unimplementable — one reading refuses every genuine pack, the other encodes an undocumented convention as a Dart literal. The algorithm is now **normative here**, the content-only scope is adopted, and CI-17 recomputes it so the next drift is a build failure rather than a device-side refusal.
+2. **§7.7 — `permittedInIndia` never existed.** The shipped schema and data carry `indianPermission { status, evidence[] }`. The structure is correct and the document was stale: Appendix A of the 2011 Regulations lists additives *by name, per food product*, and contains no INS numbers, so a global boolean is not a claim the regulation makes. Documented as shipped; `UNKNOWN` never means prohibited.
+3. **§7.10, §7.11 — two shipped files were undocumented.** `categories.json` and `messages/*.json` both ship, both have schemas, both are CI-validated, and the runtime must expose both. `inapplicableInvariants` — the FR-CAT-04 selector — existed only as a schema description. Appended rather than inserted, so that §7.9's identifier stays stable for the five places that cite it.
+4. **`categoryId` pattern.** The domain's `CategoryId` accepts `^cat\.[a-z0-9-]+$`; `common.schema.json` also accepted `_`. A schema-valid pack would have thrown at load. The **domain is authoritative** and the schema is tightened to match; hyphen is the canonical separator. No shipped identifier changes.
 
 **Changes in v1.6.** Two fields of `ParsedLabel`'s transitive shape become optional, found while reviewing Milestone 8. `ParsedLabel` is the parser's published contract (§5.5), yet §5.3 required `ServingInfo.reconciliation` — explicitly a **Layer 1** output — and §5.4 required `Ingredient.identification`, which needs the additive engine `ROADMAP.md` schedules for Phase 4. The first closes a cycle: Layer 1 consumes the object one of its own outputs is required to complete. The second demands a capability that does not exist yet. Both are now optional, each with the reason recorded inline. **Additive only:** no field removed, no type altered, no existing optionality changed. `ARCHITECTURE.md` v1.3 correspondingly retargets S8's output to `ScoredFields`.
 
@@ -615,10 +622,47 @@ rulepack/
 
 | Field | Notes |
 |---|---|
-| `version` | Semantic version; recorded on every finding (FR-KB-02) |
+| `schemaVersion` | Which schema shape the pack conforms to |
+| `packVersion` | Semantic version of the content; recorded on every finding (FR-KB-02) |
 | `integrityHash` | Verified at load; no silent fallback (FR-ERR-06) |
 | `minAppVersion` | Refuses to load into an app too old to interpret it |
 | `contentLicence` | `CC-BY-4.0` (CON-10) |
+
+#### Two independent compatibility checks
+
+`schemaVersion` and `minAppVersion` answer different questions and are checked **separately**. Collapsing them into one comparison is how a pack silently loads that should not, which is the failure ADR-0022 exists to prevent.
+
+| Check | Question | Rule | On failure |
+|---|---|---|---|
+| **Schema** | Can this build *interpret* the pack's shape? | `schemaVersion.major` must equal the major the runtime implements. Minor and patch are ignored: within a major, added fields are optional by construction. | Refuse — `schemaVersionUnsupported` |
+| **Application** | Is this build new enough to be *trusted* with the content? | The application version must be `>=` `minAppVersion`, compared as a `Version`, never lexicographically. | Refuse — `appVersionTooOld` |
+
+Both are explicit reported refusals (FR-ERR-06), never a best-effort load.
+
+#### `integrityHash` — normative algorithm
+
+**This is the specification. Nothing else defines it**, and any prose in the pack's own `notes` field is descriptive only.
+
+1. **Scope — the eight content files, and only those:**
+
+   ```
+   additives/ins.json          nutrients/rda.json         rules/thresholds.json
+   categories/categories.json  nutrients/synonyms.json    sources.json
+   messages/en.json  (and every other messages/*.json that ships)
+   rules/confidence.json
+   ```
+
+   `manifest.json` is excluded — it carries the hash and cannot contain its own digest. **`schema/*` and `LICENSE` are excluded**, deliberately: the runtime never reads them (§9.3 of `ARCHITECTURE.md` makes CI the authority on schema validity), so hashing them would let a schema typo-fix break the shipped pack's integrity for no runtime benefit.
+
+2. **Order.** Ascending byte-wise comparison of each file's UTF-8 slash-separated path relative to the pack root. Not locale-aware collation — that would make the hash depend on the machine that computed it.
+
+3. **Framing.** For each file in order, feed the digest the **path bytes** and then the **file bytes**, with no separator. Hashing the path is what stops two files' contents being swapped without detection.
+
+4. **Encoding.** SHA-256; lower-case hex; the literal prefix `sha256:`.
+
+The one property worth stating plainly: this detects corruption and tampering. It is **not** a signature and proves nothing about origin — anyone who can edit a pack file can recompute the manifest. FR-KB-09's out-of-band replacement would need signing, which the MVP does not have and must not imply that it does.
+
+**CI-17** recomputes the hash from the shipped files and fails the build on a mismatch. The runtime performs the identical computation at load.
 
 ### 7.3 `sources.json` — the citation registry
 
@@ -666,7 +710,30 @@ The FSSAI-gazetted denominators (FR-L1-04): 2,000 kcal; 67 g total fat; 22 g sat
 | `commonName`, `functionalClass` | |
 | `descriptionMessageId` | Plain-language explanation (P9) |
 | `evidenceStrength`, `sourceRefs` | FR-KB-07 |
-| `permittedInIndia` | Regulatory status — Layer 1 fact |
+| `alternateNames` | Optional; names the same additive is printed under |
+| `indianPermission` | Regulatory status — Layer 1 fact. **A record, not a boolean** — see below |
+
+#### `indianPermission` is deliberately not a boolean
+
+Appendix A of the FSS (Food Products Standards and Food Additives) Regulations 2011 lists additives **by name, per food product, with a per-product limit**. It contains no INS numbers at all. "Is INS 322 permitted in India?" is therefore not a question the regulation answers, and a `bool` would state a claim no source supports.
+
+```
+indianPermission {
+  status:   PERMITTED | UNKNOWN
+  evidence: [ { sourceRef, scheduleRef, entryName, foodProducts, limit } ]
+  note?:    string
+}
+```
+
+| Field | Why it is there |
+|---|---|
+| `status` | Two values, not three. `PERMITTED` requires at least one evidence entry — enforced by the schema's conditional, not by reviewer care |
+| `entryName` | The name **as printed** in the schedule. The INS-to-name mapping is our inference, and recording the printed name is what makes that inference auditable rather than invisible |
+| `foodProducts` | Permission never extends beyond the products the cited column covers |
+| `scheduleRef` | Exact location, so a reader can check us |
+| `limit` | As printed — `GMP`, `100 ppm max` |
+
+> **`UNKNOWN` means "not found in the tables we examined". It never means prohibited.** Only Tables 1 and 2 were read. Presenting an unexamined additive as disallowed would be exactly the confident-and-wrong output P1 exists to prevent, and Layer 1 must render the two states differently.
 
 ### 7.8 `confidence.json`
 
@@ -679,6 +746,37 @@ Region classification (S3) uses **structural cues only**: relative position, tab
 The reason is Stage 3. Per `ARCHITECTURE.md` §11, S1–S4 are the reusable half of the pipeline. If S3 depends on nutrition vocabulary, it stops being reusable for cosmetics and medicine labels, which have entirely different vocabulary but the same physical layout problem.
 
 The cost is that S3 will occasionally misclassify a region and S4/S5 must tolerate that. **That cost is preferable to forfeiting the Stage 3 reuse boundary**, which was the explicit reason §6.3 of the architecture kept S2 semantic-free in the first place.
+
+### 7.10 `categories.json`
+
+Appended in v1.7. Both this section and §7.11 describe files that have shipped since the pack was created; the omission was documentation, not data.
+
+| Field | Notes |
+|---|---|
+| `categoryId` | `^cat\.[a-z0-9-]+$`. Matches the domain's `CategoryId` exactly — the schema is derived from the type, not the reverse |
+| `nameMessageId` | Display name resolves through the catalogue; the domain never holds the text (M5, FR-LOC-01) |
+| `defaultBasis` | The basis this category's panels usually declare. A **hint for presentation, never a substitute for the basis read from the label** — a beverage declaring per-100 g is unusual, not wrong |
+| `status` | `PRIORITY` (the four validated categories) · `VERIFICATION_ONLY` (the fifth, ADR-0024 — not held to the accuracy bar) · `SUPPORTED` |
+| `inapplicableInvariants` | Optional. Invariant codes that do not apply to this category |
+
+**Category is an attribute, never a precondition** (FR-CAT-02). Nothing here gates the pipeline: a product of unknown category must produce a complete result (FR-CAT-05), and adding a category is a data-only change (FR-CAT-03).
+
+`inapplicableInvariants` is the load-bearing field and the reason this section had to be written before the runtime could expose it. It is the declarative selector FR-CAT-04 and FR-KB-11 require — the mechanism by which `INV-06` stops applying to beverages **without a single category branch in Dart**. Its outcome is `INAPPLICABLE`, which is a first-class result the user can see (FR-CNF-04), never a silent skip. A skipped invariant and an inapplicable one look identical in aggregate and mean opposite things.
+
+### 7.11 `messages/*.json`
+
+One file per locale. `en.json` ships; `hi.json` ships only when reviewed (FR-LOC-04).
+
+| Field | Notes |
+|---|---|
+| `locale` | `en` \| `hi` |
+| `reviewed` | **A non-English catalogue with `reviewed: false` must not ship** (FR-LOC-04, R11) |
+| `reviewedBy` | Optional attribution |
+| `messages` | `messageId` → text. Keys match `^msg\.[a-z0-9_.-]+$` |
+
+This file is the entire reason B8 exists: the domain emits identity, presentation resolves text. It is also what makes Hindi a content problem rather than an engineering one.
+
+**Loading is per-locale and the catalogue is not merged.** The active language loads eagerly (§9.2 of `ARCHITECTURE.md`); others are lazy. A missing ID is a **reported failure, never a fallback to the ID string or to English** — a screen showing `msg.additive.ins-322` to a user is a defect that silently reaching for English would hide until it shipped.
 
 ---
 

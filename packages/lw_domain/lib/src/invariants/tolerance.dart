@@ -169,7 +169,11 @@ final class ToleranceTable {
     InvariantId.inv06: Tolerance.grace(2000000),
     InvariantId.inv07:
         Tolerance.relative(percentTenths: 150, floorBaseUnits: 83680000),
-    InvariantId.inv08: Tolerance.relative(percentTenths: 50, floorBaseUnits: 0),
+    // 0.1 g floor, from rules/confidence.json. DATA_MODEL 4.4 pairs a floor
+    // with every relative band: 5% of a 0.15 g expected per-serve is 0.0075 g,
+    // a width no label can print.
+    InvariantId.inv08:
+        Tolerance.relative(percentTenths: 50, floorBaseUnits: 100000),
     InvariantId.inv09: const Tolerance.exact(),
     InvariantId.inv10:
         Tolerance.relative(percentTenths: 100, floorBaseUnits: 50),

@@ -113,7 +113,8 @@
     },
     "categoryId": {
       "type": "string",
-      "pattern": "^cat\\.[a-z0-9_-]+$"
+      "pattern": "^cat\\.[a-z0-9-]+$",
+      "description": "Hyphen is the canonical separator; underscore is NOT accepted. Derived from the domain's CategoryId, which is authoritative (DATA_MODEL.md v1.7). A looser pattern here would let a schema-valid pack throw at load."
     },
     "categorySelector": {
       "type": "object",
