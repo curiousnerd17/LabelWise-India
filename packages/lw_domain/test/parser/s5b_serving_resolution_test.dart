@@ -575,4 +575,162 @@ void main() {
       expect(ServingResolution.none.toString(), contains('0 of 3'));
     });
   });
+
+  group('S5b — a leading decimal point is refused, never assumed (BL-4)', () {
+    // The defect this group exists for: `.5` was read as **5**, a tenfold
+    // magnitude error reported at HIGH confidence. A serving size that is ten
+    // times too large scales every per-serve figure with it, so this is the
+    // worst class of error the product can make.
+    //
+    // The fix is refusal, not repair. `.5 g` might be `0.5 g`, but on a smudged
+    // pack it is just as likely the tail of `1.5 g` or `2.5 g`, and a printed
+    // dot is also what a speck of ink looks like to OCR. Nothing in the text
+    // settles it, so S5b declines — which is the same rule it already follows
+    // for every other ambiguity.
+
+    test('a bare leading dot is valueNotParseable, not 5 and not 0.5', () {
+      final ServingOutcome o =
+          outcome(<String>['Serving Size: .5 g'], ServingField.servingSize);
+      expect(o, isA<ServingUnresolved>());
+      expect(
+          (o as ServingUnresolved).reason, UnresolvedReason.valueNotParseable,
+          reason: 'a number was found in the value position and refused; this '
+              'is not an ambiguity between two readings');
+    });
+
+    test('the refused reading is not smuggled through as 5 g', () {
+      // Guards against a fix that reports Unresolved while still populating
+      // ServingFacts, which S7 would then use.
+      final ServingResolution r = resolve(<String>['Serving Size: .5 g']);
+      expect(r.facts.servingSize, isNull);
+    });
+
+    test('an abbreviation dot before a leading decimal point is also refused',
+        () {
+      // `Net Wt. .5 g`: the first dot is an abbreviation, the second is the
+      // defect. Stripping both is what produced `5 g`.
+      final ServingOutcome o =
+          outcome(<String>['Net Wt. .5 g'], ServingField.netQuantity);
+      expect(o, isA<ServingUnresolved>());
+      expect(
+          (o as ServingUnresolved).reason, UnresolvedReason.valueNotParseable);
+    });
+
+    test('a tightly printed abbreviation dot is refused rather than guessed',
+        () {
+      // `Net Wt.500 g` is genuinely undecidable: 500 g or 0.500 g. Refusing is
+      // conservative and consistent with the rule above — the alternative is a
+      // thousandfold error.
+      final ServingOutcome o =
+          outcome(<String>['Net Wt.500 g'], ServingField.netQuantity);
+      expect(o, isA<ServingUnresolved>());
+      expect(
+          (o as ServingUnresolved).reason, UnresolvedReason.valueNotParseable);
+    });
+
+    test('a written-out zero is unaffected — 0.5 g still resolves', () {
+      // The regression that matters most: the fix must not cost the common
+      // case. `0.5 g` is unambiguous and must stay exact.
+      expect(valueOf(<String>['Serving Size: 0.5 g'], ServingField.servingSize),
+          const Quantity.exact(50, Unit.gram));
+    });
+
+    test('an abbreviation dot with a whole number still resolves', () {
+      // `Net Wt. 500 g` — the dot is a separator here and must remain one.
+      // This is why BL-4 forbids removing `.` from separator handling globally.
+      expect(valueOf(<String>['Net Wt. 500 g'], ServingField.netQuantity),
+          const Quantity.exact(50000, Unit.gram));
+    });
+
+    test('a decimal after an abbreviation dot resolves normally', () {
+      expect(valueOf(<String>['Net Wt. 2.5 g'], ServingField.netQuantity),
+          const Quantity.exact(250, Unit.gram));
+    });
+
+    test('a colon then a whole number still resolves', () {
+      expect(valueOf(<String>['Serving Size: 30 g'], ServingField.servingSize),
+          const Quantity.exact(3000, Unit.gram));
+    });
+
+    test('a doubled dot is refused', () {
+      final ServingOutcome o =
+          outcome(<String>['Serving Size: ..5 g'], ServingField.servingSize);
+      expect(o, isA<ServingUnresolved>());
+      expect(
+          (o as ServingUnresolved).reason, UnresolvedReason.valueNotParseable);
+    });
+
+    test('a refusal does not silence the other fields on the label', () {
+      // FR-ERR-03: one unreadable figure must not turn the whole resolution
+      // into a blank.
+      final ServingResolution r = resolve(<String>[
+        'Serving Size: .5 g',
+        'Net Quantity: 500 g',
+      ]);
+      expect(r.outcomeFor(ServingField.servingSize), isA<ServingUnresolved>());
+      expect(r.outcomeFor(ServingField.netQuantity), isA<ServingResolved>());
+      expect(r.facts.netQuantity, const Quantity.exact(50000, Unit.gram));
+    });
+
+    test('a label with no serving text at all is still NotDeclared (MI-08)',
+        () {
+      // The control for the whole group: refusal must not leak into absence.
+      // "see back" is a reference, not a figure.
+      final ServingResolution r = resolve(<String>['For nutrition see back']);
+      expect(r.outcomeFor(ServingField.servingSize), isA<ServingNotDeclared>());
+      expect(r.outcomeFor(ServingField.netQuantity), isA<ServingNotDeclared>());
+      expect(r.outcomeFor(ServingField.servingsPerPack),
+          isA<ServingNotDeclared>());
+    });
+
+    test('a marker with no number at all remains distinguishable', () {
+      // Not the same defect and not the same outcome: nothing was read, so
+      // there is nothing to refuse as unparseable.
+      final ServingOutcome o =
+          outcome(<String>['Serving Size:'], ServingField.servingSize);
+      expect(o, isNot(isA<ServingResolved>()));
+    });
+  });
+
+  group('S5b — a repeated marker on one line is ambiguous (BL-5)', () {
+    // Investigated in M11b and found already correct: two numerals under one
+    // marker breaks the one-marker-one-number rule and yields ambiguousMatch.
+    // These are regression tests, locking in behaviour rather than changing it.
+
+    test('two different values under one marker is ambiguousMatch', () {
+      final ServingOutcome o = outcome(
+          <String>['Serving Size 30 g Serving Size 40 g'],
+          ServingField.servingSize);
+      expect(o, isA<ServingUnresolved>());
+      expect((o as ServingUnresolved).reason, UnresolvedReason.ambiguousMatch);
+    });
+
+    test('two identical values under one marker is NOT reconciled', () {
+      // Agreement is not evidence here. A duplicated line is a layout artefact,
+      // and treating the coincidence as corroboration would promote a reading
+      // that was never independently observed.
+      final ServingOutcome o = outcome(
+          <String>['Serving Size 30 g Serving Size 30 g'],
+          ServingField.servingSize);
+      expect(o, isA<ServingUnresolved>());
+      expect((o as ServingUnresolved).reason, UnresolvedReason.ambiguousMatch);
+    });
+
+    test('a marker and its own alias on one line is ambiguousMatch', () {
+      final ServingOutcome o = outcome(
+          <String>['Serving Size 30 g Serve Size 30 g'],
+          ServingField.servingSize);
+      expect(o, isA<ServingUnresolved>());
+      expect((o as ServingUnresolved).reason, UnresolvedReason.ambiguousMatch);
+    });
+
+    test('the resolution is unaffected for the other fields', () {
+      final ServingResolution r = resolve(<String>[
+        'Serving Size 30 g Serving Size 40 g',
+        'Net Quantity: 500 g',
+      ]);
+      expect(r.outcomeFor(ServingField.netQuantity), isA<ServingResolved>());
+      expect(r.facts.servingSize, isNull);
+    });
+  });
 }

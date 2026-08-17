@@ -4,9 +4,9 @@ import 'package:lw_domain/src/invariants/tolerance.dart';
 import 'package:lw_domain/src/label/approximation_deltas.dart';
 import 'package:lw_domain/src/label/basis.dart';
 import 'package:lw_domain/src/label/category_id.dart';
+import 'package:lw_domain/src/label/checked_arithmetic.dart';
 import 'package:lw_domain/src/label/interval.dart';
 import 'package:lw_domain/src/label/nutrient_id.dart';
-import 'package:lw_domain/src/label/qualifier.dart';
 import 'package:lw_domain/src/label/quantity.dart';
 import 'package:lw_domain/src/label/rounding.dart';
 import 'package:lw_domain/src/label/serving_facts.dart';
@@ -312,10 +312,22 @@ final class _Context {
     }
 
     final Tolerance? band = bandFor(id);
-    final int allowance =
-        band?.allowanceFor(largeBounds.supremum ?? largeBounds.infimum) ?? 0;
-    final Trilean verdict =
-        smallBounds.isAtMost(_shiftUp(largeBounds, allowance));
+    final int? computed = band == null
+        ? 0
+        : band.allowanceForOrNull(
+            largeBounds.supremum ?? largeBounds.infimum,
+          );
+    if (computed == null) {
+      return _indeterminate(id, basis, subjects);
+    }
+    // A non-nullable local, so the deviation closure below does not depend on
+    // flow promotion holding across a lambda boundary.
+    final int allowance = computed;
+    final Interval? shifted = _shiftUp(largeBounds, allowance);
+    if (shifted == null) {
+      return _indeterminate(id, basis, subjects);
+    }
+    final Trilean verdict = smallBounds.isAtMost(shifted);
 
     return _fromTrilean(
       id: id,
@@ -354,6 +366,10 @@ final class _Context {
 
     const int hundredGrams = 100 * 1000000;
     final Tolerance? band = bandFor(InvariantId.inv06);
+    // The unguarded call is correct here and deliberately kept: the reference is
+    // a compile-time constant, not an interval bound, so there is no
+    // intermediate that could overflow and nothing for a nullable path to
+    // report. Every *derived* reference below uses `allowanceForOrNull`.
     final int allowance = band?.allowanceFor(hundredGrams) ?? 0;
     final Trilean verdict =
         sum.isAtMost(Interval.point(hundredGrams + allowance));
@@ -398,11 +414,20 @@ final class _Context {
 
     final int reference = estimate.supremum ?? estimate.infimum;
     final Tolerance? band = bandFor(InvariantId.inv07);
-    final int allowance = band?.allowanceFor(reference) ?? 0;
+    final int? allowance =
+        band == null ? 0 : band.allowanceForOrNull(reference);
+    if (allowance == null) {
+      return _indeterminate(InvariantId.inv07, basis, subjects);
+    }
+    final int? low = checkedAdd(estimate.infimum, -allowance);
+    final int? high = checkedAdd(reference, allowance);
+    if (low == null || high == null) {
+      return _indeterminate(InvariantId.inv07, basis, subjects);
+    }
     final Interval permitted = Interval(
-      infimum: estimate.infimum - allowance,
+      infimum: low,
       infimumInclusive: true,
-      supremum: (estimate.supremum ?? estimate.infimum) + allowance,
+      supremum: high,
       supremumInclusive: true,
     );
     final Trilean verdict = _within(declared, permitted);
@@ -479,12 +504,23 @@ final class _Context {
       // reading of DATA_MODEL 4.4's "one unit of the last declared decimal".
       final int floor = perServe.quantity.unit.baseUnitsPerIncrement;
       final int reference = expected.supremum ?? expected.infimum;
-      final int relative = band?.allowanceFor(reference) ?? 0;
+      final int? relative =
+          band == null ? 0 : band.allowanceForOrNull(reference);
+      if (relative == null) {
+        anyIndeterminate = true;
+        continue;
+      }
       final int allowance = relative > floor ? relative : floor;
+      final int? low = checkedAdd(expected.infimum, -allowance);
+      final int? high = checkedAdd(reference, allowance);
+      if (low == null || high == null) {
+        anyIndeterminate = true;
+        continue;
+      }
       final Interval permitted = Interval(
-        infimum: expected.infimum - allowance,
+        infimum: low,
         infimumInclusive: true,
-        supremum: (expected.supremum ?? expected.infimum) + allowance,
+        supremum: high,
         supremumInclusive: true,
       );
       final Trilean verdict = _within(declared, permitted);
@@ -589,12 +625,21 @@ final class _Context {
     }
 
     final Tolerance? band = bandFor(InvariantId.inv10);
-    final int allowance =
-        band?.allowanceFor(expected.supremum ?? expected.infimum) ?? 0;
+    final int reference = expected.supremum ?? expected.infimum;
+    final int? allowance =
+        band == null ? 0 : band.allowanceForOrNull(reference);
+    if (allowance == null) {
+      return _indeterminate(InvariantId.inv10, null, subjects);
+    }
+    final int? low = checkedAdd(expected.infimum, -allowance);
+    final int? high = checkedAdd(reference, allowance);
+    if (low == null || high == null) {
+      return _indeterminate(InvariantId.inv10, null, subjects);
+    }
     final Interval permitted = Interval(
-      infimum: expected.infimum - allowance,
+      infimum: low,
       infimumInclusive: true,
-      supremum: (expected.supremum ?? expected.infimum) + allowance,
+      supremum: high,
       supremumInclusive: true,
     );
 
@@ -613,15 +658,14 @@ final class _Context {
 
   /// The interval a quantity denotes, or null when it cannot be bounded.
   ///
-  /// Null only for an `APPROXIMATELY` value whose rule pack delta is missing.
+  /// Null for an `APPROXIMATELY` value whose rule pack delta is missing —
   /// `ApproximationDeltas.deltaFor` throws in that case, and S7 must be total
-  /// (FR-PAR-17), so the guard is checked rather than the throw caught.
-  Interval? _boundsOf(Quantity q) {
-    if (q.qualifier == Qualifier.approximately && !deltas.hasDeltaFor(q.unit)) {
-      return null;
-    }
-    return q.boundsIn(deltas);
-  }
+  /// (FR-PAR-17), so the condition is checked rather than the throw caught.
+  ///
+  /// Also null when converting the declared value to base units would overflow
+  /// (M11b). `Quantity.boundsInOrNull` folds both conditions into one total
+  /// call, so there is no second not-computable vocabulary here.
+  Interval? _boundsOf(Quantity q) => q.boundsInOrNull(deltas);
 
   /// The macronutrient sum on [basis], in micrograms.
   Interval? _macronutrientInterval(Basis basis) {
@@ -639,7 +683,15 @@ final class _Context {
       if (bounds == null) {
         return null;
       }
-      total = total == null ? bounds : _add(total, bounds);
+      if (total == null) {
+        total = bounds;
+        continue;
+      }
+      final Interval? sum = _add(total, bounds);
+      if (sum == null) {
+        return null;
+      }
+      total = sum;
     }
     return total;
   }
@@ -661,11 +713,40 @@ final class _Context {
       if (bounds == null) {
         return null;
       }
-      infimum += bounds.infimum * term.value;
+      // Each term is a product of a base-unit magnitude and an energy factor,
+      // then accumulated. Both steps are intermediates that get divided by
+      // 1000 at the end, so the *product* bound applies rather than the storage
+      // bound — the storage bound would refuse an honest 100 g of fat.
+      final int? lowTerm =
+          checkedMultiply(bounds.infimum, term.value, limit: maxSafeProduct);
+      if (lowTerm == null) {
+        return null;
+      }
+      final int? nextInfimum =
+          checkedAdd(infimum, lowTerm, limit: maxSafeProduct);
+      if (nextInfimum == null) {
+        return null;
+      }
+      infimum = nextInfimum;
+
       final int? top = bounds.supremum;
-      supremum = (supremum == null || top == null)
-          ? null
-          : supremum + top * term.value;
+      if (supremum == null || top == null) {
+        // Unbounded above: an open upper end is a fact about the declaration,
+        // not a failure, and it stays open through the accumulation.
+        supremum = null;
+        continue;
+      }
+      final int? highTerm =
+          checkedMultiply(top, term.value, limit: maxSafeProduct);
+      if (highTerm == null) {
+        return null;
+      }
+      final int? nextSupremum =
+          checkedAdd(supremum, highTerm, limit: maxSafeProduct);
+      if (nextSupremum == null) {
+        return null;
+      }
+      supremum = nextSupremum;
     }
     // Outward rounding, so the estimate never narrows.
     return Interval(
@@ -684,12 +765,27 @@ final class _Context {
     }
     const int hundredGrams = 100 * 1000000;
     final int? top = perHundred.supremum;
+    // The product bound, not the storage bound: 80 g per 100 g on a 250 g serve
+    // has an intermediate of 2 x 10^16 before the division brings it back to
+    // 2 x 10^14. Refusing that would refuse a mithai box (BL-1).
+    final int? low = checkedMultiply(perHundred.infimum, serve.infimum,
+        limit: maxSafeProduct);
+    if (low == null) {
+      return null;
+    }
+    int? high;
+    if (top != null) {
+      final int? product =
+          checkedMultiply(top, serveTop, limit: maxSafeProduct);
+      if (product == null) {
+        return null;
+      }
+      high = (product + hundredGrams - 1) ~/ hundredGrams;
+    }
     return Interval(
-      infimum: perHundred.infimum * serve.infimum ~/ hundredGrams,
+      infimum: low ~/ hundredGrams,
       infimumInclusive: true,
-      supremum: top == null
-          ? null
-          : (top * serveTop + hundredGrams - 1) ~/ hundredGrams,
+      supremum: high,
       supremumInclusive: true,
     );
   }
@@ -702,12 +798,28 @@ final class _Context {
       return null;
     }
     final int? numTop = numerator.supremum;
+    // Defence in depth. With `boundsInOrNull` bounding every operand at 2^52,
+    // `numerator x 100` cannot reach 2^62, so there is no reachable input that
+    // trips these guards today. They are here because that reasoning depends on
+    // a constant defined in another file: if the storage bound is ever raised,
+    // this helper must refuse rather than wrap.
+    final int? low =
+        checkedMultiply(numerator.infimum, 100, limit: maxSafeProduct);
+    if (low == null) {
+      return null;
+    }
+    int? high;
+    if (numTop != null) {
+      final int? product = checkedMultiply(numTop, 100, limit: maxSafeProduct);
+      if (product == null) {
+        return null;
+      }
+      high = (product + denominator.infimum - 1) ~/ denominator.infimum;
+    }
     return Interval(
-      infimum: numerator.infimum * 100 ~/ denTop,
+      infimum: low ~/ denTop,
       infimumInclusive: true,
-      supremum: numTop == null
-          ? null
-          : (numTop * 100 + denominator.infimum - 1) ~/ denominator.infimum,
+      supremum: high,
       supremumInclusive: true,
     );
   }
@@ -775,13 +887,29 @@ final class _Context {
   }
 }
 
-Interval _add(Interval a, Interval b) {
+/// `a + b`, or null when either bound would overflow.
+///
+/// Private to S7, so widening the return type is not a public API change (S1).
+/// Both call sites map null to `INDETERMINATE`, which is the same channel an
+/// unbounded operand already takes.
+Interval? _add(Interval a, Interval b) {
   final int? aTop = a.supremum;
   final int? bTop = b.supremum;
+  final int? low = checkedAdd(a.infimum, b.infimum);
+  if (low == null) {
+    return null;
+  }
+  int? high;
+  if (aTop != null && bTop != null) {
+    high = checkedAdd(aTop, bTop);
+    if (high == null) {
+      return null;
+    }
+  }
   return Interval(
-    infimum: a.infimum + b.infimum,
+    infimum: low,
     infimumInclusive: a.infimumInclusive && b.infimumInclusive,
-    supremum: (aTop == null || bTop == null) ? null : aTop + bTop,
+    supremum: high,
     supremumInclusive: a.supremumInclusive && b.supremumInclusive,
   );
 }
@@ -794,15 +922,29 @@ Interval _add(Interval a, Interval b) {
 /// pass — would then never hold for two point declarations that differ only by
 /// the manufacturer's rounding. That is precisely the case the grace exists
 /// to absorb.
-Interval _shiftUp(Interval i, int by) {
+///
+/// Null when either shifted bound would overflow. Private to S7 (S1); the one
+/// call site maps null to `INDETERMINATE`.
+Interval? _shiftUp(Interval i, int by) {
   if (by == 0) {
     return i;
   }
   final int? top = i.supremum;
+  final int? low = checkedAdd(i.infimum, by);
+  if (low == null) {
+    return null;
+  }
+  int? high;
+  if (top != null) {
+    high = checkedAdd(top, by);
+    if (high == null) {
+      return null;
+    }
+  }
   return Interval(
-    infimum: i.infimum + by,
+    infimum: low,
     infimumInclusive: i.infimumInclusive,
-    supremum: top == null ? null : top + by,
+    supremum: high,
     supremumInclusive: i.supremumInclusive,
   );
 }

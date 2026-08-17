@@ -1,4 +1,5 @@
 import 'package:lw_domain/src/invariants/invariant_id.dart';
+import 'package:lw_domain/src/label/checked_arithmetic.dart';
 
 /// How an allowance is derived from the magnitude being checked.
 enum ToleranceKind {
@@ -112,8 +113,35 @@ final class Tolerance {
         ToleranceKind.relative => _relativeAllowance(referenceBaseUnits.abs()),
       };
 
+  /// [allowanceFor], or null when the band cannot be computed.
+  ///
+  /// **Identical to [allowanceFor] for every finite input either can express.**
+  /// It differs only where the unguarded form would wrap: `reference ×
+  /// percentTenths`. The reference is an interval bound — an *intermediate*, not
+  /// a stored declaration — and `percentTenths` arrives from the rule pack,
+  /// which the schema does not cap. A wrapped band is negative, which would
+  /// *tighten* the comparison and manufacture a failure.
+  ///
+  /// Additive: [allowanceFor] is unchanged, and S7 uses this path.
+  int? allowanceForOrNull(int referenceBaseUnits) => switch (kind) {
+        ToleranceKind.exact => 0,
+        ToleranceKind.absolute => graceBaseUnits,
+        ToleranceKind.relative =>
+          _relativeAllowanceOrNull(referenceBaseUnits.abs()),
+      };
+
   int _relativeAllowance(int reference) {
     final int band = reference * percentTenths ~/ 1000;
+    return band > floorBaseUnits ? band : floorBaseUnits;
+  }
+
+  int? _relativeAllowanceOrNull(int reference) {
+    final int? product =
+        checkedMultiply(reference, percentTenths, limit: maxSafeProduct);
+    if (product == null) {
+      return null;
+    }
+    final int band = product ~/ 1000;
     return band > floorBaseUnits ? band : floorBaseUnits;
   }
 

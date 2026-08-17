@@ -73,6 +73,80 @@ void main() {
     });
   });
 
+  group('maxSafeProduct — wrap safety, never plausibility (BL-1)', () {
+    test('it is a distinct, larger bound than the storage bound', () {
+      // Two unrelated questions: "is this a plausible stored value?" and "did
+      // this multiplication wrap?". One constant answering both is what made
+      // M11a's guard unusable on the S7 helpers.
+      expect(maxSafeProduct, greaterThan(maxSafeBaseUnits));
+      expect(maxSafeProduct, 1 << 62);
+      expect(maxSafeProduct, lessThan(0x7FFFFFFFFFFFFFFF));
+    });
+
+    test('a legitimate large label is NOT rejected', () {
+      // The acceptance criterion. 80 g per 100 g scaled by a 250 g serve —
+      // mithai, thali, family packs. In micrograms the intermediate is 2e16,
+      // which exceeds the STORAGE bound while being nowhere near a wrap.
+      const int per100g = 80 * 1000000; // 80 g in ug
+      const int serve = 250 * 1000000; // 250 g in ug
+      expect(checkedMultiply(per100g, serve, limit: maxSafeProduct),
+          20000000000000000);
+      expect(
+        checkedMultiply(per100g, serve),
+        isNull,
+        reason: 'the storage bound rightly refuses it; the product bound must '
+            'not — which is exactly why they are separate',
+      );
+    });
+
+    test('a 100 g per 100 g nutrient on a 500 g serve is accepted', () {
+      expect(
+        checkedMultiply(100 * 1000000, 500 * 1000000, limit: maxSafeProduct),
+        isNotNull,
+      );
+    });
+
+    test('the Atwater per-term product is accepted at realistic magnitude', () {
+      // 100 g of fat in micrograms times 37656 microjoules per microgram.
+      expect(checkedMultiply(100 * 1000000, 37656, limit: maxSafeProduct),
+          isNotNull);
+    });
+
+    test('exactly the product bound is permitted', () {
+      expect(checkedMultiply(maxSafeProduct, 1, limit: maxSafeProduct),
+          maxSafeProduct);
+    });
+
+    test('one step past the product bound is refused', () {
+      expect(checkedMultiply(maxSafeProduct + 1, 1, limit: maxSafeProduct),
+          isNull);
+      expect(checkedMultiply(2, maxSafeProduct, limit: maxSafeProduct), isNull);
+    });
+
+    test('a genuine wrap is still refused under the product bound', () {
+      // 2^80 cannot be represented at all.
+      expect(checkedMultiply(1 << 40, 1 << 40, limit: maxSafeProduct), isNull);
+    });
+
+    test('a pathological magnitude times an Atwater factor is refused', () {
+      expect(checkedMultiply(maxSafeBaseUnits, 37656, limit: maxSafeProduct),
+          isNull);
+    });
+
+    test('the default limit is unchanged, so M11a behaviour is preserved', () {
+      // Every committed M11a assertion depends on this.
+      expect(checkedMultiply(2, maxSafeBaseUnits), isNull);
+      expect(checkedMultiply(maxSafeBaseUnits, 1), maxSafeBaseUnits);
+    });
+
+    test('zero and negatives behave identically under either limit', () {
+      expect(checkedMultiply(0, 1 << 40, limit: maxSafeProduct), 0);
+      expect(checkedMultiply(-4, 5, limit: maxSafeProduct), -20);
+      expect(
+          checkedMultiply(-(1 << 40), 1 << 40, limit: maxSafeProduct), isNull);
+    });
+  });
+
   group('checkedAdd', () {
     test('an ordinary sum is returned unchanged', () {
       // The Atwater estimate accumulates three scaled terms this way.

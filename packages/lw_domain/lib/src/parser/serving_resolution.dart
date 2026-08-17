@@ -145,7 +145,13 @@ final class ServingUnresolved extends ServingOutcome {
   /// Why it could not be used.
   final UnresolvedReason reason;
 
-  /// Every reading that was found. Never empty.
+  /// Every reading that was found, which may be **empty**.
+  ///
+  /// Empty when the label named the field but nothing usable came out of the
+  /// line — two numerals under one marker, or a malformed value such as `.5 g`.
+  /// That is still `Unresolved` rather than `NotDeclared`, because a marker was
+  /// recognised (MI-08): the user should be told the figure could not be read,
+  /// not that the pack omitted it.
   final List<ServingCandidate> candidates;
 
   @override

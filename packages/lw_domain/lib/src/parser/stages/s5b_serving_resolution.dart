@@ -59,6 +59,7 @@ StageResult<ServingResolution> resolveServing(
   final Map<ServingField, List<ServingCandidate>> found =
       <ServingField, List<ServingCandidate>>{};
   final Set<ServingField> sawAmbiguousLine = <ServingField>{};
+  final Set<ServingField> sawUnparseableLine = <ServingField>{};
 
   for (final ClassifiedRegion region in regions.regions) {
     if (region.kind == RegionKind.ingredientList) {
@@ -76,6 +77,8 @@ StageResult<ServingResolution> resolveServing(
       switch (reading) {
         case _ReadingAmbiguous():
           sawAmbiguousLine.add(marker.field);
+        case _ReadingUnparseable():
+          sawUnparseableLine.add(marker.field);
         case _ReadingNone():
           break;
         case _ReadingOk(candidate: final ServingCandidate c):
@@ -95,8 +98,12 @@ StageResult<ServingResolution> resolveServing(
   for (final ServingField field in ServingField.values) {
     final List<ServingCandidate> candidates =
         found[field] ?? const <ServingCandidate>[];
-    final ServingOutcome outcome =
-        _resolve(field, candidates, sawAmbiguousLine.contains(field));
+    final ServingOutcome outcome = _resolve(
+      field,
+      candidates,
+      sawAmbiguousLine.contains(field),
+      sawUnparseableLine.contains(field),
+    );
     outcomes[field] = outcome;
     if (outcome is ServingResolved) {
       switch (field) {
@@ -128,22 +135,37 @@ StageResult<ServingResolution> resolveServing(
 /// when they denote the same value; anything else is reported with every
 /// candidate retained, so a correction UI can show the user what was found
 /// rather than a choice nobody made.
+/// [sawUnparseableLine] is a **separate** signal from [sawAmbiguousLine], not a
+/// synonym: `ambiguousMatch` says *several readings and none clearly better*,
+/// while `valueNotParseable` says *text in the value position that is not a
+/// number*. `Serving Size: .5 g` is the second, and reporting it as the first
+/// would send a correction UI looking for a conflict that does not exist.
+///
+/// Where both occurred, `ambiguousMatch` wins. That keeps every outcome
+/// byte-identical to M11a whenever no unparseable line is present, so the new
+/// signal cannot silently reclassify anything that already worked.
 ServingOutcome _resolve(
   ServingField field,
   List<ServingCandidate> candidates,
   bool sawAmbiguousLine,
+  bool sawUnparseableLine,
 ) {
+  final bool refuse = sawAmbiguousLine || sawUnparseableLine;
+  final UnresolvedReason reason = sawAmbiguousLine
+      ? UnresolvedReason.ambiguousMatch
+      : UnresolvedReason.valueNotParseable;
+
   if (candidates.isEmpty) {
     // A line that named the field but could not be read is not the same as no
     // line at all — the first is unresolved, the second absent (MI-08).
-    return sawAmbiguousLine
+    return refuse
         ? ServingUnresolved(
-            reason: UnresolvedReason.ambiguousMatch,
+            reason: reason,
             candidates: const <ServingCandidate>[],
           )
         : const ServingNotDeclared();
   }
-  if (candidates.length == 1 && !sawAmbiguousLine) {
+  if (candidates.length == 1 && !refuse) {
     return ServingResolved(candidates.single);
   }
 
@@ -156,11 +178,11 @@ ServingOutcome _resolve(
       );
     }
   }
-  if (sawAmbiguousLine) {
+  if (refuse) {
     // Agreeing readings alongside a line we could not parse: the agreement may
     // be a coincidence of the two we could read.
     return ServingUnresolved(
-      reason: UnresolvedReason.ambiguousMatch,
+      reason: reason,
       candidates: candidates,
     );
   }
@@ -229,6 +251,11 @@ final class _ReadingAmbiguous extends _Reading {
   const _ReadingAmbiguous();
 }
 
+/// The value position held something that is not a readable number.
+final class _ReadingUnparseable extends _Reading {
+  const _ReadingUnparseable();
+}
+
 /// Reads one marked line.
 ///
 /// **One marker, one number.** A line carrying two numeric literals is
@@ -244,6 +271,18 @@ _Reading _read(
 ) {
   final String remainder = _withoutMarker(text, marker.text);
   final QualifierReading qualified = qualifiers.read(remainder);
+  if (_beginsWithBareDecimalPoint(qualified.remainder)) {
+    // `.5 g` is refused rather than read as `0.5 g` **or** as `5 g`.
+    //
+    // The defect this replaces read it as **5 g** — a tenfold magnitude error,
+    // reported at HIGH confidence, that scales every per-serve figure derived
+    // from it. Reading it as `0.5 g` instead would only move the guess: on a
+    // pack this notation is as often the tail of `1.5 g`, or a speck of ink
+    // where no dot was printed, as it is a genuine leading-dot decimal. Indian
+    // labelling requirements do not specify the form, so there is no authority
+    // to appeal to — and inventing one is what MI-16 and FR-PAR-05 forbid.
+    return const _ReadingUnparseable();
+  }
   final List<_Number> numbers = _numbersIn(qualified.remainder);
   if (numbers.isEmpty) {
     return const _ReadingNone();
@@ -305,12 +344,39 @@ String _withoutMarker(String text, String marker) {
 }
 
 /// [text] with leading whitespace and separator punctuation removed.
+///
+/// Stripping **stops** at a `.` or `,` that is immediately followed by a digit,
+/// because that character is part of the value rather than a separator before
+/// it. `Net Wt. .5 g` contains both: the first dot abbreviates the marker, the
+/// second belongs to the number. Consuming both is what turned `.5 g` into
+/// `5 g` (BL-4). `Net Wt. 500 g` is unaffected — its dot is followed by a
+/// space, so it is still a separator.
 String _stripLeadingSeparators(String text) {
   int start = 0;
   while (start < text.length && _isSeparator(text[start])) {
+    if ((text[start] == '.' || text[start] == ',') &&
+        start + 1 < text.length &&
+        _isDigit(text.codeUnitAt(start + 1))) {
+      break;
+    }
     start++;
   }
   return text.substring(start).trim();
+}
+
+/// Whether [text] begins with a decimal point that has no digit before it.
+///
+/// Leading whitespace is skipped, so this holds however the qualifier lexicon
+/// left the remainder.
+bool _beginsWithBareDecimalPoint(String text) {
+  int i = 0;
+  while (i < text.length && (text[i] == ' ' || text[i] == '\t')) {
+    i++;
+  }
+  if (i >= text.length || (text[i] != '.' && text[i] != ',')) {
+    return false;
+  }
+  return i + 1 < text.length && _isDigit(text.codeUnitAt(i + 1));
 }
 
 /// Whether [c] separates a label from its value rather than forming part of it.

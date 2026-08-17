@@ -1,4 +1,5 @@
 import 'package:lw_domain/src/label/approximation_deltas.dart';
+import 'package:lw_domain/src/label/checked_arithmetic.dart';
 import 'package:lw_domain/src/label/interval.dart';
 import 'package:lw_domain/src/label/qualifier.dart';
 import 'package:lw_domain/src/label/rounding.dart';
@@ -70,6 +71,21 @@ final class Quantity {
   /// kilocalories against kilojoules — lossless.
   int get baseUnits => scaledValue * unit.baseUnitsPerIncrement;
 
+  /// [baseUnits], or null when the conversion would overflow.
+  ///
+  /// **Dart integers wrap silently on 64-bit overflow.** `Unit.kilocalorie`
+  /// converts at 418 400 mJ per increment, so a misread magnitude reaches the
+  /// wrap point through this multiplication alone — and a wrapped value is
+  /// negative, plausible-looking, and would then be compared against a real
+  /// declaration to produce a confident wrong verdict (P1).
+  ///
+  /// Additive rather than a change to [baseUnits]: the unguarded getter keeps
+  /// its exact contract, and callers that cannot tolerate a wrap choose this
+  /// one. Null is the not-computable channel every S7 caller already handles
+  /// as `INDETERMINATE` (FR-PAR-17).
+  int? get baseUnitsOrNull =>
+      checkedMultiply(scaledValue, unit.baseUnitsPerIncrement);
+
   /// The interval this quantity denotes, in base units.
   ///
   /// [deltas] is consulted only for [Qualifier.approximately]; pass
@@ -100,12 +116,77 @@ final class Quantity {
     };
   }
 
+  /// [boundsIn], or null when the interval cannot be computed.
+  ///
+  /// Null for exactly three reasons, all of which mean *we cannot say*:
+  ///
+  /// - the base-unit conversion would overflow ([baseUnitsOrNull]);
+  /// - the quantity is `APPROXIMATELY` and no rule pack delta is configured for
+  ///   its unit, which [boundsIn] signals by throwing;
+  /// - widening by that delta would itself overflow.
+  ///
+  /// This is the **total** sibling of [boundsIn] and the one the invariant
+  /// stage uses, because S7 must return a `StageResult` for every input
+  /// (FR-PAR-17) and cannot let a `StateError` escape. [boundsIn] is left
+  /// exactly as it was.
+  Interval? boundsInOrNull(ApproximationDeltas deltas) {
+    final int? value = baseUnitsOrNull;
+    if (value == null) {
+      return null;
+    }
+    return switch (qualifier) {
+      Qualifier.exact => Interval.point(value),
+      Qualifier.lessThan => Interval(
+          infimum: 0,
+          infimumInclusive: true,
+          supremum: value,
+          supremumInclusive: false,
+        ),
+      Qualifier.greaterThan => Interval(
+          infimum: value,
+          infimumInclusive: false,
+          supremum: null,
+          supremumInclusive: false,
+        ),
+      Qualifier.approximately => _approximateBoundsOrNull(value, deltas),
+    };
+  }
+
   Interval _approximateBounds(int value, ApproximationDeltas deltas) {
     final int delta = deltas.deltaFor(unit) * unit.baseUnitsPerIncrement;
     return Interval(
       infimum: value - delta,
       infimumInclusive: true,
       supremum: value + delta,
+      supremumInclusive: true,
+    );
+  }
+
+  Interval? _approximateBoundsOrNull(int value, ApproximationDeltas deltas) {
+    // Checked rather than caught: a missing delta is a rule pack condition, and
+    // `deltaFor` documents its throw as a programming error. Asking first keeps
+    // that contract intact while staying total here.
+    if (!deltas.hasDeltaFor(unit)) {
+      return null;
+    }
+    // The rule pack schema places no maximum on a delta, so a malformed pack
+    // can reach this multiplication. Widening an interval by a wrapped
+    // half-width would invert it — a "wider" interval narrower than the value
+    // it contains — which no downstream comparison could detect.
+    final int? delta =
+        checkedMultiply(deltas.deltaFor(unit), unit.baseUnitsPerIncrement);
+    if (delta == null) {
+      return null;
+    }
+    final int? low = checkedAdd(value, -delta);
+    final int? high = checkedAdd(value, delta);
+    if (low == null || high == null) {
+      return null;
+    }
+    return Interval(
+      infimum: low,
+      infimumInclusive: true,
+      supremum: high,
       supremumInclusive: true,
     );
   }
