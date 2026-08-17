@@ -109,9 +109,13 @@ final class ScoredFields {
     List<InvariantResult> invariantResults = const <InvariantResult>[],
     List<IngredientToken> ingredientTokens = const <IngredientToken>[],
     this.serving = ServingFacts.none,
+    Map<ServingField, FieldState> servingStates =
+        const <ServingField, FieldState>{},
     this.nutritionPanelPresent = false,
     this.ingredientListPresent = false,
-  })  : fields = List<ScoredField>.unmodifiable(fields),
+  })  : servingStates =
+            Map<ServingField, FieldState>.unmodifiable(servingStates),
+        fields = List<ScoredField>.unmodifiable(fields),
         unresolved = List<UnresolvedCandidate>.unmodifiable(unresolved),
         invariantResults = List<InvariantResult>.unmodifiable(invariantResults),
         ingredientTokens = List<IngredientToken>.unmodifiable(ingredientTokens);
@@ -130,6 +134,18 @@ final class ScoredFields {
 
   /// The pack figures the serving invariants were evaluated against.
   final ServingFacts serving;
+
+  /// The serving figures as **scored field states** (M11a).
+  ///
+  /// Empty when S5b did not run, which is what keeps every pre-M11 caller on
+  /// exactly its previous behaviour.
+  ///
+  /// > **Not a duplicate of [serving].** That holds three nullable quantities
+  /// > and answers "what may the invariants use"; null there cannot separate
+  /// > *the label does not declare this* from *we found something unusable*.
+  /// > This map answers "what should the user be told", and MI-08 requires
+  /// > those two questions to have different answers.
+  final Map<ServingField, FieldState> servingStates;
 
   /// How much of this scan the user should check (`DATA_MODEL.md` §4.5).
   ///

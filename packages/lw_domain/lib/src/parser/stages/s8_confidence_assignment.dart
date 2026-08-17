@@ -3,17 +3,21 @@ import 'package:lw_domain/src/confidence/confidence_policy.dart';
 import 'package:lw_domain/src/confidence/confidence_signals.dart';
 import 'package:lw_domain/src/confidence/scan_confidence.dart';
 import 'package:lw_domain/src/invariants/invariant_result.dart';
+import 'package:lw_domain/src/label/basis.dart';
 import 'package:lw_domain/src/label/field_state.dart';
 import 'package:lw_domain/src/label/nutrient_id.dart';
 import 'package:lw_domain/src/label/quantity.dart';
+import 'package:lw_domain/src/label/serving_facts.dart';
 import 'package:lw_domain/src/parser/parse_failure.dart';
 import 'package:lw_domain/src/parser/scored_fields.dart';
+import 'package:lw_domain/src/parser/serving_resolution.dart';
 import 'package:lw_domain/src/parser/stage.dart';
 import 'package:lw_domain/src/parser/typed_fields.dart';
 import 'package:lw_domain/src/parser/validated_fields.dart';
 import 'package:lw_domain/src/provenance/parse_strength.dart';
 import 'package:lw_domain/src/provenance/pipeline_stage.dart';
 import 'package:lw_domain/src/provenance/provenance.dart';
+import 'package:lw_domain/src/provenance/rule_id.dart';
 import 'package:lw_domain/src/version.dart';
 
 /// **S8 — Confidence assignment.** How much of this should the user check?
@@ -49,6 +53,7 @@ StageResult<ScoredFields> assignConfidence(
   ValidatedFields validated, {
   required Version rulePackVersion,
   ConfidencePolicy? policy,
+  ServingResolution? servingResolution,
 }) {
   if (!validated.nutritionPanelPresent && !validated.ingredientListPresent) {
     return const StageFailure<ScoredFields>(
@@ -97,11 +102,133 @@ StageResult<ScoredFields> assignConfidence(
       invariantResults: validated.results,
       ingredientTokens: validated.ingredientTokens,
       serving: validated.serving,
+      servingStates: _scoreServing(
+        servingResolution,
+        validated,
+        rules,
+        rulePackVersion,
+      ),
       scanConfidence: _scanLevel(scored, validated),
       nutritionPanelPresent: validated.nutritionPanelPresent,
       ingredientListPresent: validated.ingredientListPresent,
     ),
   );
+}
+
+/// Rule identifiers this stage attributes its own work to.
+final class _S8Rules {
+  const _S8Rules._();
+
+  /// Used when S5b found no line naming a figure, so there is no marker rule
+  /// to attribute the outcome to.
+  static final RuleId servingUnread = RuleId('rule.serving.unread');
+}
+
+/// Scores the serving figures S5b resolved (M11a).
+///
+/// **The same [ConfidencePolicy], the same [ConfidenceSignals], no new rule.**
+/// A serving size scales every per-serve figure downstream, so it earns a
+/// confidence exactly as a nutrient does — and it earns it here, because S8 is
+/// the only stage permitted to assign one.
+///
+/// The three outcomes map without interpretation:
+///
+/// | S5b said | S8 produces |
+/// |---|---|
+/// | resolved | `ExtractedField` with a scored confidence |
+/// | not declared | `NotDeclaredField` |
+/// | unresolved | `UnresolvedField`, reason preserved |
+///
+/// **Confidence never promotes.** An unresolved figure stays unresolved and
+/// carries no value and no confidence — scoring it would make a reading out of
+/// something we declined to read.
+Map<ServingField, FieldState> _scoreServing(
+  ServingResolution? resolution,
+  ValidatedFields validated,
+  ConfidencePolicy rules,
+  Version rulePackVersion,
+) {
+  if (resolution == null) {
+    // S5b did not run. Empty, so assembly keeps its pre-M11 behaviour rather
+    // than reporting three figures as absent on no evidence.
+    return const <ServingField, FieldState>{};
+  }
+
+  final Map<ServingField, FieldState> states = <ServingField, FieldState>{};
+  // ServingField.values order: the output must not depend on map iteration
+  // order (FR-PAR-02).
+  for (final ServingField field in ServingField.values) {
+    states[field] = switch (resolution.outcomeFor(field)) {
+      ServingNotDeclared() => const NotDeclaredField(),
+      ServingUnresolved(
+        reason: final UnresolvedReason reason,
+        candidates: final List<ServingCandidate> candidates,
+      ) =>
+        UnresolvedField(
+          reason: reason,
+          provenance: candidates.isEmpty
+              ? Provenance.derived(
+                  producedByStage: PipelineStage.servingResolution,
+                  parseRuleId: _S8Rules.servingUnread,
+                  rulePackVersion: rulePackVersion,
+                )
+              // A figure we found and could not use was still *found*, so its
+              // provenance is extracted and names where it was read.
+              : Provenance.extracted(
+                  producedByStage: PipelineStage.servingResolution,
+                  parseRuleId: candidates.first.matchedBy,
+                  parseStrength: candidates.first.parseStrength,
+                  sourceRegion: candidates.first.region,
+                  rulePackVersion: rulePackVersion,
+                ),
+        ),
+      ServingResolved(candidate: final ServingCandidate c) => ExtractedField(
+          quantity: c.quantity,
+          basis: _basisFor(field),
+          provenance: Provenance.extracted(
+            producedByStage: PipelineStage.servingResolution,
+            parseRuleId: c.matchedBy,
+            parseStrength: c.parseStrength,
+            sourceRegion: c.region,
+            rulePackVersion: rulePackVersion,
+          ),
+          confidence: rules.classify(
+            ConfidenceSignals(
+              s2ParseStrength: c.parseStrength,
+              s3InvariantResults: _invariantsInvolving(field, validated),
+            ),
+          ),
+        ),
+    };
+  }
+  return states;
+}
+
+/// What a serving figure is expressed against.
+///
+/// Read from `Basis`'s own definition — "the reference quantity a value is
+/// expressed against" — rather than assumed. One serve *is* the serving size,
+/// and both the net quantity and the servings count describe the whole pack.
+Basis _basisFor(ServingField field) => switch (field) {
+      ServingField.servingSize => Basis.perServe,
+      ServingField.servingsPerPack => Basis.perPack,
+      ServingField.netQuantity => Basis.perPack,
+    };
+
+/// Every invariant [field] took part in — signal **S3**.
+///
+/// Uses the existing `ServingSubject` participation mechanism, which INV-09 and
+/// INV-10 already populate. No new signal is introduced, which is why FR-CNF-05
+/// applies to serving figures for free.
+List<InvariantResult> _invariantsInvolving(
+  ServingField field,
+  ValidatedFields validated,
+) {
+  final InvariantSubject subject = ServingSubject(field);
+  return <InvariantResult>[
+    for (final InvariantResult r in validated.results)
+      if (r.involves(subject)) r,
+  ];
 }
 
 /// The three signals for one field.

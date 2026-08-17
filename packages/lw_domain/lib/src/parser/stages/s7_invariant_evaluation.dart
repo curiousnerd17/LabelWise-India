@@ -3,6 +3,7 @@ import 'package:lw_domain/src/invariants/invariant_result.dart';
 import 'package:lw_domain/src/invariants/tolerance.dart';
 import 'package:lw_domain/src/label/approximation_deltas.dart';
 import 'package:lw_domain/src/label/basis.dart';
+import 'package:lw_domain/src/label/category_id.dart';
 import 'package:lw_domain/src/label/interval.dart';
 import 'package:lw_domain/src/label/nutrient_id.dart';
 import 'package:lw_domain/src/label/qualifier.dart';
@@ -15,6 +16,7 @@ import 'package:lw_domain/src/parser/parse_failure.dart';
 import 'package:lw_domain/src/parser/stage.dart';
 import 'package:lw_domain/src/parser/typed_fields.dart';
 import 'package:lw_domain/src/parser/validated_fields.dart';
+import 'package:lw_domain/src/rulepack/category.dart';
 import 'package:lw_domain/src/provenance/pipeline_stage.dart';
 
 /// Micro-joules per microgram of protein or carbohydrate, ×1000.
@@ -68,6 +70,8 @@ StageResult<ValidatedFields> evaluateInvariants(
   ServingFacts? serving,
   ToleranceTable? tolerances,
   ApproximationDeltas? deltas,
+  CategoryId? category,
+  CategoryTable? categories,
 }) {
   if (!typed.nutritionPanelPresent && !typed.ingredientListPresent) {
     return const StageFailure<ValidatedFields>(
@@ -78,11 +82,21 @@ StageResult<ValidatedFields> evaluateInvariants(
     );
   }
 
+  // FR-CAT-04: category scoping is declarative pack data, never a code branch.
+  // An absent category, an absent table, or a category the pack does not
+  // declare all yield an empty set — the universal behaviour that FR-CAT-05
+  // requires and that every pre-M11 caller already gets.
+  final Set<InvariantId> excluded = <InvariantId>{
+    if (category != null && categories != null)
+      ...?categories[category]?.inapplicableInvariants,
+  };
+
   final _Context context = _Context(
     typed: typed,
     serving: serving ?? ServingFacts.none,
     tolerances: tolerances ?? ToleranceTable.defaults,
     deltas: deltas ?? ApproximationDeltas.none,
+    excluded: excluded,
   );
 
   final List<InvariantResult> results = <InvariantResult>[];
@@ -108,8 +122,16 @@ StageResult<ValidatedFields> evaluateInvariants(
       results.add(context.evaluateScoped(id, basis));
     }
   }
-  results.add(context.evaluateServingSizeWithinPack());
-  results.add(context.evaluateServingCount());
+  // INV-09 and INV-10 are not basis-scoped, so they sit outside the loop and
+  // need the same category filter applied to them.
+  results.add(context.scopedByCategory(
+    InvariantId.inv09,
+    context.evaluateServingSizeWithinPack,
+  ));
+  results.add(context.scopedByCategory(
+    InvariantId.inv10,
+    context.evaluateServingCount,
+  ));
 
   return StageSuccess<ValidatedFields>(
     ValidatedFields(
@@ -131,12 +153,30 @@ final class _Context {
     required this.serving,
     required this.tolerances,
     required this.deltas,
+    this.excluded = const <InvariantId>{},
   });
 
   final TypedFields typed;
   final ServingFacts serving;
   final ToleranceTable tolerances;
   final ApproximationDeltas deltas;
+
+  /// Invariants the declared category says do not apply (FR-CAT-04).
+  final Set<InvariantId> excluded;
+
+  /// [evaluated] rewritten as `INAPPLICABLE`, keeping its participants.
+  ///
+  /// A category-excluded invariant is **reported, never skipped**. Skipping it
+  /// would make "we did not check this" indistinguishable from "this does not
+  /// apply here" in the aggregate, and FR-CNF-04 requires the user to be able
+  /// to see the difference. Reusing the evaluated result's participants keeps
+  /// the record structurally identical to every other outcome.
+  InvariantResult _excludedResult(InvariantResult evaluated) => InvariantResult(
+        invariantId: evaluated.invariantId,
+        outcome: InvariantOutcome.inapplicable,
+        basis: evaluated.basis,
+        participatingFields: evaluated.participatingFields,
+      );
 
   bool hasAnyFieldOn(Basis basis) =>
       typed.fields.any((TypedField f) => f.basis == basis);
@@ -152,7 +192,20 @@ final class _Context {
 
   Tolerance? bandFor(InvariantId id) => tolerances.forInvariant(id);
 
-  InvariantResult evaluateScoped(InvariantId id, Basis basis) => switch (id) {
+  InvariantResult evaluateScoped(InvariantId id, Basis basis) =>
+      scopedByCategory(id, () => _evaluateScoped(id, basis));
+
+  /// [evaluate]'s result, rewritten to `INAPPLICABLE` when the category
+  /// excludes [id].
+  InvariantResult scopedByCategory(
+    InvariantId id,
+    InvariantResult Function() evaluate,
+  ) {
+    final InvariantResult evaluated = evaluate();
+    return excluded.contains(id) ? _excludedResult(evaluated) : evaluated;
+  }
+
+  InvariantResult _evaluateScoped(InvariantId id, Basis basis) => switch (id) {
         InvariantId.inv01 => _nonNegative(basis),
         InvariantId.inv02 =>
           _atMost(id, basis, NutrientId.saturatedFat, NutrientId.totalFat),

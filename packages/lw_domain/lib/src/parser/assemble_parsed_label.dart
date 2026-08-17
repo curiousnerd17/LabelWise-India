@@ -4,6 +4,7 @@ import 'package:lw_domain/src/label/field_state.dart';
 import 'package:lw_domain/src/label/ingredient.dart';
 import 'package:lw_domain/src/label/nutrient_id.dart';
 import 'package:lw_domain/src/label/parsed_label.dart';
+import 'package:lw_domain/src/label/serving_facts.dart';
 import 'package:lw_domain/src/parser/candidates.dart';
 import 'package:lw_domain/src/parser/parse_failure.dart';
 import 'package:lw_domain/src/parser/scored_fields.dart';
@@ -64,7 +65,7 @@ StageResult<ParsedLabel> assembleParsedLabel(
   return StageSuccess<ParsedLabel>(
     ParsedLabel(
       nutrients: _nutrients(scored),
-      servingInfo: _servingInfo(rulePackVersion),
+      servingInfo: _servingInfoFrom(scored, rulePackVersion),
       ingredients: <Ingredient>[
         for (final IngredientToken t in scored.ingredientTokens)
           _ingredient(t, rulePackVersion),
@@ -148,6 +149,32 @@ FieldState _slot(List<ScoredField> fields, List<Basis> accepted) {
 /// reason: a figure we never located has no position on the label, and
 /// `Provenance.derived` is the only factory that carries a stage, a rule and a
 /// pack version without demanding a `sourceRegion`.
+/// The serving figures, taken from S8.
+///
+/// **Assembly selects; it does not compute.** Every state here was built by S8,
+/// the only stage permitted to assign a confidence. Rebuilding one from a
+/// `ParseStrength` would put a second confidence system in the worst possible
+/// place — and `_servingInfo` below is deliberately the *only* thing in this
+/// file that constructs a `FieldState` at all.
+ServingInfo _servingInfoFrom(ScoredFields scored, Version rulePackVersion) {
+  if (scored.servingStates.isEmpty) {
+    return _servingInfo(rulePackVersion);
+  }
+  return ServingInfo(
+    declaredServingSize: scored.servingStates[ServingField.servingSize] ??
+        const NotDeclaredField(),
+    servingsPerPack: scored.servingStates[ServingField.servingsPerPack] ??
+        const NotDeclaredField(),
+    netQuantity: scored.servingStates[ServingField.netQuantity] ??
+        const NotDeclaredField(),
+  );
+}
+
+/// The pre-M11 fallback, for a pipeline run where S5b did not execute.
+///
+/// Retained rather than replaced with `NotDeclaredField`: "S5b never looked"
+/// and "the label declares nothing" are different facts, and FR-ERR-03 turns on
+/// not conflating them.
 ServingInfo _servingInfo(Version rulePackVersion) {
   FieldState unread() => UnresolvedField(
         reason: UnresolvedReason.noMatchingRule,

@@ -36,9 +36,38 @@ void main() {
 
   group('PipelineStage — forward-only ordering (ARCHITECTURE 6.2)', () {
     test('FR-PAR-01 stages carry S1..S8 and exclude the port boundary S0', () {
-      expect(PipelineStage.values, hasLength(8));
+      // Nine, not eight: S5b serving resolution was added in M11 (FR-PAR-08).
+      // S0 remains absent — it is the P-OCR boundary, not a domain stage.
+      expect(PipelineStage.values, hasLength(9));
       expect(PipelineStage.values.first, PipelineStage.normalisation);
       expect(PipelineStage.values.last, PipelineStage.confidenceAssignment);
+    });
+
+    test('FR-PAR-08 serving resolution sits between S5 and S6', () {
+      // The ordinal is a comparison key, so the only thing that matters is
+      // that it orders correctly against its neighbours. Asserting the
+      // relationships rather than the literal numbers keeps this test true
+      // through any future renumbering.
+      expect(
+        PipelineStage.fieldResolution.precedes(PipelineStage.servingResolution),
+        isTrue,
+      );
+      expect(
+        PipelineStage.servingResolution
+            .precedes(PipelineStage.unitNormalisation),
+        isTrue,
+      );
+      expect(
+        PipelineStage.servingResolution
+            .precedes(PipelineStage.invariantEvaluation),
+        isTrue,
+        reason: 'S7 consumes the serving figures S5b produces',
+      );
+      expect(
+        PipelineStage.unitNormalisation
+            .precedes(PipelineStage.servingResolution),
+        isFalse,
+      );
     });
 
     test('FR-PAR-01 ordinals ascend so a later stage is detectable', () {
