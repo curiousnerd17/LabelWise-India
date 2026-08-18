@@ -42,6 +42,7 @@ export 'src/parser/classified_regions.dart';
 export 'src/parser/label_layout.dart';
 export 'src/parser/normalised_text.dart';
 export 'src/parser/parse_failure.dart';
+export 'src/parser/parse_label.dart';
 export 'src/parser/qualifier_lexicon.dart';
 export 'src/parser/recognition_result.dart';
 export 'src/parser/region_markers.dart';
