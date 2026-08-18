@@ -72,6 +72,42 @@ final class Provenance {
         substitutions: List<Substitution>.unmodifiable(substitutions),
       );
 
+  /// Provenance for a value computed by **Layer 1 factual analysis**.
+  ///
+  /// Carries no [producedByStage], and that is the point rather than an
+  /// omission. Layer 1 consumes the finished `ParsedLabel`; it is analysis, not
+  /// a parser stage, and no stage produced its output. [producedByStage] is
+  /// already documented as null "for a value that no stage produced" — this is
+  /// the first caller for which that is literally true.
+  ///
+  /// > **Why [PipelineStage] did not grow a tenth member instead.** Its nine
+  /// > values are the parser stages, and `precedes` is meaningful only while
+  /// > every member sits in one pipeline. A `factualAnalysis` member would make
+  /// > that comparison span two layers of the architecture, weakening a type
+  /// > whose whole purpose is to make pipeline ordering mechanically
+  /// > verifiable.
+  ///
+  /// Carries no [parseStrength] either: signal S2 is a property of a rule
+  /// *matching text*, and Layer 1 matched nothing — it did arithmetic.
+  /// Supplying a placeholder would feed a confidence signal from an event that
+  /// never happened (ADR-0010, P1). No [sourceRegion], because a computed value
+  /// was never on the label.
+  ///
+  /// [origin] is [FieldOrigin.derived] rather than a fourth kind: a Layer 1
+  /// value *is* computed from other fields, so ADR-0010's rule that a derived
+  /// confidence never exceeds the meet of its inputs applies unchanged.
+  factory Provenance.factual({
+    required RuleId parseRuleId,
+    required Version rulePackVersion,
+    List<Substitution> substitutions = const <Substitution>[],
+  }) =>
+      Provenance._(
+        origin: FieldOrigin.derived,
+        parseRuleId: parseRuleId,
+        rulePackVersion: rulePackVersion,
+        substitutions: List<Substitution>.unmodifiable(substitutions),
+      );
+
   /// Provenance for a value entered or corrected by the user.
   ///
   /// Carries no rule, no strength, no stage and no region. Nothing in the

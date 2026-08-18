@@ -12,7 +12,14 @@
 /// iteration speed (NFR-MNT-01, NFR-TST-02, E1).
 library;
 
+export 'src/analysis/derivation.dart';
+export 'src/analysis/factual_finding.dart';
+export 'src/analysis/factual_value.dart';
+export 'src/analysis/finding_subject.dart';
+export 'src/analysis/layer1.dart';
+export 'src/analysis/layer1_result.dart';
 export 'src/analysis/serving_reconciliation.dart';
+export 'src/analysis/serving_reconciliation_result.dart';
 export 'src/confidence/confidence.dart';
 export 'src/confidence/confidence_policy.dart';
 export 'src/confidence/confidence_signals.dart';
